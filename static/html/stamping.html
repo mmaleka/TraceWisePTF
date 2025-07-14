@@ -1,0 +1,67 @@
+<div class="container mt-5">
+  <div class="row align-items-center mb-3">
+    <!-- Heading on the left -->
+    <div class="col-md-6">
+      <h2 class="text-primary m-0">🔩 Final Stamping</h2>
+    </div>
+
+    <!-- Export button on the right -->
+    <div class="col-md-6 text-end">
+      <button class="btn btn-outline-success" id="exportStampedToCSVBtn" >📤 Export Stamped Data</button>
+    </div>
+  </div>
+
+
+  <!-- In Progress Table -->
+  <div class="row">
+    <div class="col-md-6">
+      <h5 class="text-center text-secondary">📋 In Progress</h5>
+      <input type="text" class="form-control mb-2" placeholder="🔎 Filter serial..." oninput="filterInProgress(this.value)">
+      <div class="table-responsive">
+        <table class="table table-bordered text-center align-middle">
+          <thead class="table-warning">
+            <tr>
+              <th>Shell Serial Number</th>
+              <th>Cast Code</th>
+              <th>Heat Code</th>
+              <th>Product</th>
+            </tr>
+          </thead>
+          <tbody id="inProgressTableBody">
+            <!-- JavaScript will populate this -->
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Complete Table -->
+    <div class="col-md-6">
+    <h5 class="text-center text-secondary">✅ Stamped</h5>
+    <input
+      type="text"
+      class="form-control mb-2"
+      placeholder="🔎 Filter stamped serial..."
+      oninput="filterComplete(this.value)"
+    />
+    <div class="table-responsive">
+      <table class="table table-bordered text-center align-middle">
+        <thead class="table-success">
+          <tr>
+            <th>Shell Serial Number</th>
+            <th>Cast Code</th>
+            <th>Heat Code</th>
+            <th>Product</th>
+            <th>Stamped By</th>
+            <th>Stamped At</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody id="completeTableBody">
+          <!-- JavaScript will populate this -->
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  </div>
+</div>

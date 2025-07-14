@@ -1,0 +1,92 @@
+<!-- CSS -->
+<link rel="stylesheet" href="/static/css/mpi.css" />
+
+<!-- Add Button -->
+<div class="row mb-3">
+  <div class="col-12 text-end">
+    <button class="btn btn-success" id="openFormPanelBtn" >➕ Add MPI Data</button>
+    <button class="btn btn-primary me-2" id="saveChangesBtn" >✅ Save Changes</button>
+    <button class="btn btn-outline-secondary" id="exportUTDataBtn" >📤 Export CSV</button>
+  </div>
+</div>
+
+<!-- Slide-in UT Form (initially hidden) -->
+<div id="utFormPanel" class="ut-slide-panel">
+  <div class="panel-content p-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+      <h5 class="text-primary m-0">🔍 New MPI Entry</h5>
+      <button class="btn btn-sm btn-outline-danger" id="closeFormPanelBtn" >✖</button>
+    </div>
+
+  <form id="utForm">
+    <div class="mb-3">
+      <label for="serialNumber" class="form-label">Shell Serial Number</label>
+      <input type="text" class="form-control" id="serialNumber" required />
+    </div>
+
+    <div class="mb-3">
+      <label for="castCode" class="form-label">Cast Code</label>
+      <input type="text" class="form-control" id="castCode" required />
+    </div>
+
+    <div class="mb-3">
+      <label for="heatCode" class="form-label">Heat Code</label>
+      <input type="text" class="form-control" id="heatCode" required />
+    </div>
+
+    <div class="mb-3">
+      <label for="Product" class="form-label">Product</label>
+      <input type="text" class="form-control" id="Product" required />
+    </div>
+
+    <div class="mb-3">
+      <label class="form-label">Sentence</label>
+      <select class="form-select" id="sentence" required>
+        <option value="">-- Select Result --</option>
+        <option value="Pass">✅ Pass</option>
+        <option value="Rework">🔧 Rework</option>
+        <option value="Scrap">❌ Scrap</option>
+      </select>
+    </div>
+
+    <div class="mb-3">
+      <label for="comment" class="form-label">Comment (Optional)</label>
+      <textarea class="form-control" id="comment" rows="2"></textarea>
+    </div>
+
+    <div class="d-grid gap-2">
+      <button type="submit" class="btn btn-primary">📥 Submit MPI Result</button>
+    </div>
+
+    <div id="utMessage" class="text-center mt-3 fw-bold"></div>
+  </form>
+  </div>
+</div>
+
+
+<!-- UT Data Table -->
+<div class="row mt-5">
+  <div class="col-12">
+    <h4 class="text-center text-secondary mb-3">📊 MPI Results</h4>
+    <div class="table-responsive">
+      <table class="table table-bordered table-striped align-middle text-center">
+        <!-- Table Head -->
+        <thead class="table-primary">
+          <tr>
+            <th>Shell Serial No.</th>
+            <th>Cast Code</th>
+            <th>Heat Code</th>
+            <th>Product</th>
+            <th>Sentence</th>
+            <th>Comment</th>
+            <th>Date</th>
+            <th>🗑️ Delete</th>
+          </tr>
+        </thead>
+        <tbody id="utTableBody">
+          <!-- JavaScript will populate rows -->
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>

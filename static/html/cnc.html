@@ -1,0 +1,103 @@
+<!-- CSS -->
+<link rel="stylesheet" href="/static/css/cnc.css" />
+<!-- Add Button -->
+<div class="row mb-3">
+  <div class="col-12 text-end">
+    <button class="btn btn-success" id="openFormPanelBtn" >➕ Add Component</button>
+    <button class="btn btn-primary me-2" id="saveChangesBtn" >✅ Save Changes</button>
+    <button class="btn btn-outline-secondary" id="exportUTDataBtn" >📤 Export CSV</button>
+    
+
+
+  </div>
+</div>
+
+<!-- Slide-in UT Form (initially hidden) -->
+<div id="utFormPanel" class="ut-slide-panel">
+  <div class="panel-content p-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+      <h5 class="text-primary m-0">🛠️ CNC Operation Entry</h5>
+      <button class="btn btn-sm btn-outline-danger" id="closeFormPanelBtn" >✖</button>
+    </div>
+     
+    <form id="utForm">
+      <div class="mb-3">
+        <label class="form-label">Op Description</label>
+        <input type="text" class="form-control" id="opDesc" required />
+      </div>
+
+      <div class="mb-3">
+        <label class="form-label">Op Number</label>
+        <input type="text" class="form-control" id="opNo" required />
+      </div>
+
+      <div class="mb-3">
+        <label class="form-label">Machine No</label>
+        <input type="text" class="form-control" id="machineNo" required />
+      </div>
+
+      <div class="mb-3">
+        <label for="Product" class="form-label">Product</label>
+        <input type="text" class="form-control" id="Product" required />
+        <!-- <select class="form-select" id="cncProduct" required>
+          <option value="">-- Select Product --</option>
+          <option value="155mm HE Shell">155mm HE Shell</option>
+          <option value="155mm Smoke Shell">155mm Smoke Shell</option>
+          <option value="155mm Base Bleed Shell">155mm Base Bleed Shell</option>
+        </select> -->
+      </div>
+
+      <div class="mb-3">
+        <label class="form-label">Determination</label>
+        <select class="form-select" id="cncDetermination" required>
+          <option value="">-- Select --</option>
+          <option value="Pass">✅ Pass</option>
+          <option value="Rework">🔧 Rework</option>
+          <option value="Scrap">❌ Scrap</option>
+        </select>
+      </div>
+
+      <div class="mb-3">
+        <label class="form-label">Comments (optional)</label>
+        <textarea class="form-control" id="cncComments" rows="2"></textarea>
+      </div>
+
+      <div class="d-grid gap-2">
+        <button type="submit" class="btn btn-primary">📥 Submit CNC Entry</button>
+      </div>
+
+      <div id="cncMessage" class="text-center mt-3 fw-bold"></div>
+    </form>
+
+    
+  </div>
+</div>
+
+
+<!-- UT Data Table -->
+<div class="row mt-5">
+  <div class="col-12">
+    <h4 class="text-center text-secondary mb-3">🛠️ CNC Operation Results</h4>
+    <div class="table-responsive">
+      <table class="table table-bordered table-striped align-middle text-center">
+        <!-- Table Head -->
+        <thead class="table-primary">
+          <tr>
+            <th>Op Description</th>
+            <th>Op No</th>
+            <th>Machine</th>
+            <th>Product</th>
+            <th>Determination</th>
+            <th>Comments</th>
+            <th>Shift</th>
+            <th>User</th>
+            <th>Date</th>
+          </tr>
+        </thead>
+        <tbody id="utTableBody">
+          <!-- JavaScript will populate rows -->
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>

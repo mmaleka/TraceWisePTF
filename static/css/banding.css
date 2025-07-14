@@ -1,0 +1,43 @@
+/* Slide panel container */
+.ut-slide-panel {
+  position: fixed;
+  top: 0;
+  right: -100%; /* Hidden off-screen */
+  width: 100%;
+  max-width: 400px;
+  height: 100vh;
+  background: #fff;
+  box-shadow: -2px 0 8px rgba(0, 0, 0, 0.2);
+  transition: right 0.4s ease;
+  z-index: 1055;
+  overflow-y: auto;
+}
+
+/* When open */
+.ut-slide-panel.open {
+  right: 0;
+}
+
+/* Optional blur background */
+.ut-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 100vh;
+  width: 100vw;
+  background-color: rgba(0, 0, 0, 0.4);
+  z-index: 1050;
+}
+
+.sentence-dropdown {
+  padding: 2px 4px;
+  font-size: 0.85rem;
+  text-align: center;
+}
+
+.comment-input {
+  padding: 2px 6px;
+  font-size: 0.85rem;
+}
+
+

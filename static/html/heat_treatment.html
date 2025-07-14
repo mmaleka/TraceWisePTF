@@ -1,0 +1,94 @@
+<div class="container mt-5">
+  <div class="row justify-content-center">
+    <!-- Full-width heading -->
+    <div class="col-12">
+      <h2 class="text-center text-primary mb-4">🔥 Heat Treatment - Release Batch</h2>
+    </div>
+
+    <!-- Centered form (4 columns on medium screens and up) -->
+    <div class="col-md-4">
+      <form id="releaseForm" enctype="multipart/form-data">
+        <div class="mb-3">
+          <label for="product" class="form-label">Product Description</label>
+          <select class="form-select" id="product" required>
+            <option value="">-- Select Product --</option>
+            <option value="155mm HE Shell">155mm HE Shell</option>
+            <option value="155mm Smoke Shell">155mm Smoke Shell</option>
+            <option value="155mm Base Bleed Shell">155mm Base Bleed Shell</option>
+          </select>
+        </div>
+
+        <div class="mb-3">
+          <label for="castCode" class="form-label">Cast Code</label>
+          <input type="text" class="form-control" id="castCode" required />
+        </div>
+
+        <div class="mb-3">
+          <label for="heatCode" class="form-label">Heat Code</label>
+          <input type="text" class="form-control" id="heatCode" required />
+        </div>
+
+        <div class="mb-3">
+          <label for="hardShell" class="form-label">Hard Shell Quantity</label>
+          <input type="number" class="form-control" id="hardShell" min="0" required />
+        </div>
+
+        <div class="mb-3">
+          <label for="softShell" class="form-label">Soft Shell Quantity</label>
+          <input type="number" class="form-control" id="softShell" min="0" required />
+        </div>
+
+        <div class="mb-3">
+          <label for="quantity" class="form-label">Total Quantity</label>
+          <input type="number" class="form-control" id="quantity" min="1" required />
+        </div>
+
+        <div class="mb-3">
+          <label for="certificate" class="form-label">Attach Certificate</label>
+          <input type="file" class="form-control" id="certificate" accept=".pdf,.jpg,.jpeg,.png" required />
+        </div>
+
+        <div class="d-grid gap-2">
+          <button type="submit" class="btn btn-primary">✅ Release Batch</button>
+        </div>
+
+        <div id="formMessage" class="text-center mt-3 fw-bold"></div>
+        
+        <div class="d-grid gap-2 mt-3">
+
+            <button type="button" id="exportBtn" class="btn btn-outline-secondary">
+            📄 Export Report
+            </button>
+</div>
+      </form>
+    </div>
+  </div>
+</div>
+
+
+<!-- Table Section with top margin -->
+<div class="row mt-5">
+  <div class="col-md-10 mx-auto">
+    <h4 class="text-center text-secondary mb-3">📋 Released Batches</h4>
+    <div class="table-responsive">
+      <table class="table table-striped table-bordered align-middle text-center">
+        <thead class="table-primary">
+          <tr>
+            <th scope="col">Batch ID</th>
+            <th scope="col">Product</th>
+            <th scope="col">Cast Code</th>
+            <th scope="col">Heat Code</th>
+            <th scope="col">Hard Shell</th>
+            <th scope="col">Soft Shell</th>
+            <th scope="col">Total</th>
+            <th scope="col">Released By</th> <!-- New column -->
+            <th scope="col">Date Released</th>
+          </tr>
+        </thead>
+        <tbody id="batchTableBody">
+          <!-- JavaScript will populate this -->
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
