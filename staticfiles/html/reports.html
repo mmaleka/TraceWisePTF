@@ -1,0 +1,372 @@
+<!-- CSS -->
+<link rel="stylesheet" href="/static/css/reports.css" />
+
+<div class="container mt-5">
+  <h2 class="text-primary mb-4">📊 Reports Dashboard</h2>
+
+  <div class="row">
+    <!-- Left-side vertical tabs -->
+    <div class="col-md-3">
+      <div class="nav flex-column nav-pills me-3" id="v-pills-tab" role="tablist" aria-orientation="vertical">
+        <button class="nav-link active" id="trace-tab" data-bs-toggle="pill" data-bs-target="#trace" type="button" role="tab">🔎 Component Traceability</button>
+        <button class="nav-link" id="operation-tab" data-bs-toggle="tab" data-bs-target="#operationReport" type="button" role="tab">📁 Filter by Operation</button>
+        <button class="nav-link" id="heat-tab" data-bs-toggle="pill" data-bs-target="#heat" type="button" role="tab">🔥 Heat Treatment Summary</button>
+        <button class="nav-link" id="scrap-tab" data-bs-toggle="pill" data-bs-target="#scrap" type="button" role="tab">🛑 Rework & Scrap</button>
+        <button class="nav-link" id="coc-report-tab" data-bs-toggle="pill" data-bs-target="#cocReport" type="button" role="tab">📄 CofC Report</button>
+        <!-- Add more tabs as needed -->
+      </div>
+    </div>
+
+    <!-- Tab content -->
+    <div class="col-md-9">
+      <div class="tab-content" id="v-pills-tabContent">
+              
+        <!-- 🔎 Traceability Report Tab -->
+        <div class="tab-pane fade show active" id="trace" role="tabpanel" aria-labelledby="trace-tab">
+          <div class="container mt-4">
+            <h4 class="mb-3">🔎 Component Traceability Report</h4>
+            <p>Search by shell, cast, and heat code to view the full process history.</p>
+
+            <!-- Search Inputs in One Line -->
+            <div class="row align-items-end mb-4">
+              <div class="col-md-3">
+                <input id="shellInput" class="form-control" placeholder="Enter Shell Number" />
+              </div>
+              <div class="col-md-3">
+                <input id="castInput" class="form-control" placeholder="Enter Cast Code" />
+              </div>
+              <div class="col-md-3">
+                <input id="heatInput" class="form-control" placeholder="Enter Heat Code" />
+              </div>
+              <div class="col-md-3">
+                <button class="btn btn-primary w-100" id="searchComponentBtn" >🔍 Search</button>
+              </div>
+            </div>
+
+            <!-- Result Container -->
+            <div id="resultContainer" class="d-none">
+              <!-- Heat Treatment -->
+              <div class="card mb-4">
+                <div class="card-header bg-secondary text-white">🔥 Heat Treatment</div>
+                <div class="card-body">
+                  <p><strong>Product:</strong> <span id="htProduct"></span></p>
+                  <p><strong>Quantity:</strong> <span id="htQuantity"></span></p>
+                  <p><strong>Soft Components:</strong> <span id="htSoft"></span></p>
+                  <p><strong>Hard Components:</strong> <span id="htHard"></span></p>
+                  <div class="table-responsive">
+                    <table class="table table-bordered mt-3">
+                      <thead class="table-light">
+                        <tr>
+                          <th>User</th>
+                          <th>Date</th>
+                          <th>Determination</th>
+                          <th>Defect</th>
+                        </tr>
+                      </thead>
+                      <tbody id="htTableBody"></tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+
+              <!-- 🔍 Ultrasonic Testing -->
+              <div class="card mb-4">
+                <div class="card-header bg-success text-white">🔍 Ultrasonic Testing</div>
+                <div class="card-body">
+                  <div class="table-responsive">
+                    <table class="table table-bordered">
+                      <thead class="table-light">
+                        <tr>
+                          <th>User</th>
+                          <th>Date</th>
+                          <th>Determination</th>
+                          <th>Defect</th>
+                        </tr>
+                      </thead>
+                      <tbody id="utTableBody"></tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+
+              <!-- 🪓 Final Stamping -->
+              <div class="card mb-4">
+                <div class="card-header bg-warning text-dark">🪓 Final Stamping</div>
+                <div class="card-body">
+                  <div class="table-responsive">
+                    <table class="table table-bordered">
+                      <thead class="table-light">
+                        <tr>
+                          <th>User</th>
+                          <th>Date</th>
+                          <th>Determination</th>
+                          <th>Defect</th>
+                        </tr>
+                      </thead>
+                      <tbody id="fsTableBody"></tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+
+              <!-- ⚙️ CNC Machining -->
+              <div class="card mb-4">
+                <div class="card-header bg-info text-white">⚙️ CNC Machining</div>
+                <div class="card-body">
+                  <div class="table-responsive">
+                    <table class="table table-bordered">
+                      <thead class="table-light">
+                        <tr>
+                          <th>User</th>
+                          <th>Date</th>
+                          <th>Determination</th>
+                          <th>Defect</th>
+                        </tr>
+                      </thead>
+                      <tbody id="cncTableBody"></tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+
+              <!-- 🧲 MPI -->
+              <div class="card mb-4">
+                <div class="card-header bg-danger text-white">🧲 Magnetic Particle Inspection (MPI)</div>
+                <div class="card-body">
+                  <div class="table-responsive">
+                    <table class="table table-bordered">
+                      <thead class="table-light">
+                        <tr>
+                          <th>User</th>
+                          <th>Date</th>
+                          <th>Determination</th>
+                          <th>Defect</th>
+                        </tr>
+                      </thead>
+                      <tbody id="mpiTableBody"></tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+
+              <!-- 💢 Banding -->
+              <div class="card mb-4">
+                <div class="card-header bg-primary text-white">💢 Banding</div>
+                <div class="card-body">
+                  <div class="table-responsive">
+                    <table class="table table-bordered">
+                      <thead class="table-light">
+                        <tr>
+                          <th>User</th>
+                          <th>Date</th>
+                          <th>Determination</th>
+                          <th>Defect</th>
+                        </tr>
+                      </thead>
+                      <tbody id="bandingTableBody"></tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+
+              <!-- 🌀 Balancing -->
+              <div class="card mb-4">
+                <div class="card-header bg-dark text-white">🌀 Balancing</div>
+                <div class="card-body">
+                  <div class="table-responsive">
+                    <table class="table table-bordered">
+                      <thead class="table-light">
+                        <tr>
+                          <th>User</th>
+                          <th>Date</th>
+                          <th>Determination</th>
+                          <th>Defect</th>
+                        </tr>
+                      </thead>
+                      <tbody id="balancingTableBody"></tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+
+              <!-- ✅ Final Inspection -->
+              <div class="card mb-4">
+                <div class="card-header bg-success text-white">✅ Final Inspection</div>
+                <div class="card-body">
+                  <div class="table-responsive">
+                    <table class="table table-bordered">
+                      <thead class="table-light">
+                        <tr>
+                          <th>User</th>
+                          <th>Date</th>
+                          <th>Determination</th>
+                          <th>Defect</th>
+                        </tr>
+                      </thead>
+                      <tbody id="fiTableBody"></tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+
+              <!-- 📄 Certificate of Conformance -->
+              <div class="card mb-5">
+                <div class="card-header bg-secondary text-white">📄 Certificate of Conformance</div>
+                <div class="card-body">
+                  <div class="table-responsive">
+                    <table class="table table-bordered">
+                      <thead class="table-light">
+                        <tr>
+                          <th>User</th>
+                          <th>Date</th>
+                          <th>Determination</th>
+                          <th>Defect</th>
+                        </tr>
+                      </thead>
+                      <tbody id="cocTableBody"></tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        
+        
+        
+        
+        <!-- 📁 Filter by Operation -->
+        <div class="tab-pane fade show" id="operationReport" role="tabpanel" aria-labelledby="trace-tab">
+          <h4 class="mb-3">📁 Filter by Operation</h4>
+          <!-- Insert your existing Traceability report code here -->
+          <p>Search by shell, cast, and heat code to view the full process history.</p>
+          <!-- You'll paste your traceability form and results HTML here -->
+              <div class="row align-items-end mb-4">
+                <div class="col-md-4">
+                  <select id="operationSelect" class="form-select">
+                    <option value="">Select Operation</option>
+                    <option>Heat Treatment</option>
+                    <option>Ultrasonic Testing</option>
+                    <option>Final Stamping</option>
+                    <option>CNC Machining</option>
+                    <option>MPI</option>
+                    <option>Banding</option>
+                    <option>Balancing</option>
+                    <option>Final Inspection</option>
+                    <option>Certificate of Conformance</option>
+                  </select>
+                </div>
+                <div class="col-md-3">
+                  <input type="date" id="startDate" class="form-control" />
+                </div>
+                <div class="col-md-3">
+                  <input type="date" id="endDate" class="form-control" />
+                </div>
+                <div class="col-md-2">
+                  <button class="btn btn-primary w-100" id="filterByOperationBtn" >🔎 Filter</button>
+                </div>
+              </div>
+
+              <div class="table-responsive">
+                <table class="table table-bordered">
+                  <thead class="table-light">
+                    <tr>
+                      <th>Shell #</th>
+                      <th>Cast Code</th>
+                      <th>Heat Code</th>
+                      <th>User</th>
+                      <th>Date</th>
+                      <th>Determination</th>
+                      <th>Defect</th>
+                    </tr>
+                  </thead>
+                  <tbody id="operationTableBody"></tbody>
+                </table>
+          </div>
+        </div>
+
+
+        <!-- 🔥 Heat Treatment Summary -->
+        <div class="tab-pane fade" id="heat" role="tabpanel" aria-labelledby="heat-tab">
+          <h4 class="mb-3">🔥 Heat Treatment Summary</h4>
+          <p>Overview of all heat treatment activities and trends.</p>
+          <!-- Future charts, tables or filters -->
+        </div>
+        
+
+        <!-- 🛑 Rework & Scrap -->
+        <div class="tab-pane fade" id="scrap" role="tabpanel" aria-labelledby="scrap-tab">
+          <h4 class="mb-3">🛑 Rework & Scrap Report</h4>
+          <p>List of all components flagged for scrap or rework with defects.</p>
+          <!-- Placeholder for now -->
+        </div>
+
+        <!-- 📄 Certificate of Conformance  -->
+        <div class="tab-pane fade" id="cocReport" role="tabpanel" aria-labelledby="coc-report-tab">
+          <h4 class="mb-3">📄 Certificate of Conformance Report</h4>
+  <p>Filter by CofC number, product, user, date range or incomplete status.</p>
+          
+
+          <div class="row align-items-end mb-4">
+            <div class="col-md-3">
+              <input id="cocNumberInput" class="form-control" placeholder="Enter CofC Number" />
+            </div>
+            <div class="col-md-3">
+              <input id="productInput" class="form-control" placeholder="Enter Product" />
+            </div>
+            <div class="col-md-3">
+              <input id="userInput" class="form-control" placeholder="Enter User" />
+            </div>
+            <div class="col-md-3 form-check">
+              <input class="form-check-input" type="checkbox" id="incompleteCheckbox" />
+              <label class="form-check-label" for="incompleteCheckbox">Only Incomplete</label>
+            </div>
+          </div>
+
+          <div class="row align-items-end mb-4">
+            <div class="col-md-3">
+              <label for="startDateCofC" class="form-label">Start Date</label>
+              <input type="date" id="startDateCofC" class="form-control" />
+            </div>
+            <div class="col-md-3">
+              <label for="endDateCofC" class="form-label">End Date</label>
+              <input type="date" id="endDateCofC" class="form-control" />
+            </div>
+            <div class="col-md-3">
+              <button class="btn btn-primary mt-3 w-100" id="filterCofCReportBtn">🔎 Filter CofC</button>
+            </div>
+          </div>
+
+          <div class="table-responsive">
+            <table class="table table-bordered">
+              <thead class="table-light">
+                <tr>
+                  <th>CofC #</th>
+                  <th>Product</th>
+                  <th>User</th>
+                  <th>Date</th>
+                  <th>Quantity</th>
+                  <th>Complete</th>
+                  <th>Comments</th>
+                  <th>Components</th>
+                </tr>
+              </thead>
+
+              <tbody id="cocReportTableBody">
+                <!-- Results will be populated here -->
+              </tbody>
+            </table>
+          </div>  
+        </div>
+        
+        
+        
+      </div>
+    </div>
+  </div>
+</div>
+
+
+
+
