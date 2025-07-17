@@ -1,0 +1,18 @@
+from django.db import models
+from django.contrib.auth.models import User
+from api.heat_treatment.models import HeatTreatmentBatch
+
+class Banding(models.Model):
+    heat_treatment = models.ForeignKey(HeatTreatmentBatch, on_delete=models.SET_NULL, null=True, blank=True, related_name="banding_records")
+    serial = models.CharField(max_length=100)
+    cast_code = models.CharField(max_length=100)
+    heat_code = models.CharField(max_length=100)
+    pressure = models.DecimalField(max_digits=6, decimal_places=2)
+    gap = models.DecimalField(max_digits=5, decimal_places=2)
+    diameter = models.DecimalField(max_digits=6, decimal_places=3)
+    image = models.ImageField(upload_to='banding_images/', null=True, blank=True)
+    date = models.DateTimeField(auto_now_add=True)
+    recorded_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
+
+    def __str__(self):
+        return f"{self.serial} - {self.product.name}"
