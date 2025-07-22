@@ -15,22 +15,20 @@ class FinalInspectionRecordSerializer(serializers.ModelSerializer):
         ]
         read_only_fields = ["heat_treatment", "inspector", "date"]
 
+    
     def create(self, validated_data):
         heat_treatment = self._find_heat_batch(validated_data)
         user = self.context["request"].user
-        return FinalInspectionRecord.objects.create(
-            **validated_data,
-            heat_treatment=heat_treatment,
-            inspector=user
-        )
+        validated_data["heat_treatment"] = heat_treatment
+        validated_data["inspector"] = user
+        return super().create(validated_data)
+
 
     def update(self, instance, validated_data):
         heat_treatment = self._find_heat_batch(validated_data)
-        for attr, value in validated_data.items():
-            setattr(instance, attr, value)
-        instance.heat_treatment = heat_treatment
-        instance.save()
-        return instance
+        validated_data["heat_treatment"] = heat_treatment
+        return super().update(instance, validated_data)
+
 
     def _find_heat_batch(self, data):
         return HeatTreatmentBatch.objects.filter(
