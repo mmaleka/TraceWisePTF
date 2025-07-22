@@ -36,7 +36,6 @@ class FinalInspectionRecordViewSet(viewsets.ModelViewSet):
     def _find_heat_batch(self, data):
         from api.heat_treatment.models import HeatTreatmentBatch
         return HeatTreatmentBatch.objects.filter(
-            serial=data.get("serial"),
             cast_code=data.get("cast_code"),
             heat_code=data.get("heat_code")
         ).first()
