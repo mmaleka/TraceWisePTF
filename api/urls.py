@@ -19,4 +19,5 @@ urlpatterns = [
     path("stamping/", include("api.stamping.urls")),
     path("cnc_machining/", include("api.cnc_machining.urls")),
     path('banding/', include('api.banding.urls')),
+    path('final_inspection/', include('api.final_inspection.urls')),
 ]
