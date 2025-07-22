@@ -20,9 +20,23 @@ class FinalInspectionRecordViewSet(viewsets.ModelViewSet):
         if isinstance(request.data, list):
             serializer = self.get_serializer(data=request.data, many=True)
             serializer.is_valid(raise_exception=True)
-            self.perform_bulk_create(serializer)
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+            saved_instances = []
+            for item in serializer.validated_data:
+                instance = FinalInspectionRecord.objects.create(
+                    inspector=request.user,
+                    heat_treatment=self._find_heat_batch(item),
+                    **item
+                )
+                saved_instances.append(instance)
+
+            # Return proper serialized output including ID
+            response_serializer = self.get_serializer(saved_instances, many=True)
+            return Response(response_serializer.data, status=status.HTTP_201_CREATED)
+
         return super().create(request, *args, **kwargs)
+
+    
 
     def perform_bulk_create(self, serializer):
         # Save each item individually with inspector and heat_treatment lookup
