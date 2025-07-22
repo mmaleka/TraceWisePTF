@@ -34,7 +34,6 @@ class FinalInspectionRecordSerializer(serializers.ModelSerializer):
 
     def _find_heat_batch(self, data):
         return HeatTreatmentBatch.objects.filter(
-            serial=data.get("serial"),
             cast_code=data.get("cast_code"),
             heat_code=data.get("heat_code")
         ).first()
