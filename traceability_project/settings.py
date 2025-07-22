@@ -51,6 +51,7 @@ INSTALLED_APPS = [
     'api.stamping',
     'api.cnc_machining',
     'api.banding',
+    'api.final_inspection',
 ]
 
 MIDDLEWARE = [
