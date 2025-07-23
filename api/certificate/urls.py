@@ -25,7 +25,17 @@ urlpatterns = router.urls + [
 # DELETE	/api/components/:id/	Delete a component
 # PUT/PATCH	/api/components/:id/	Update a component (optional)
 
-# ET /api/cofc/verify/?certificate=7
 
+# ET /api/cofc/verify/?certificate=7
+# {
+#   "missing": {
+#     "heat_treatment": ["SH-001-AA01-HT01"],
+#     "UT": "All Complete",
+#     "MPI": "All Complete",
+#     "final_inspection": "All Complete"
+#   },
+#   "complete": false,
+#   "quantity": 3
+# }
 
 
