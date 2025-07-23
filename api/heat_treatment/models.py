@@ -16,3 +16,14 @@ class HeatTreatmentBatch(models.Model):
 
     def __str__(self):
         return f"{self.product} - {self.cast_code} - {self.heat_code}"
+
+
+class HTComponent(models.Model):
+    batch = models.ForeignKey(HeatTreatmentBatch, on_delete=models.CASCADE, related_name="components")
+    serial = models.CharField(max_length=50)
+    cast_code = models.CharField(max_length=50)
+    heat_code = models.CharField(max_length=50)
+    hardness_value = models.DecimalField(max_digits=5, decimal_places=2)
+
+    def __str__(self):
+        return f"{self.serial} ({self.cast_code} / {self.heat_code}) - Hardness: {self.hardness_value}"

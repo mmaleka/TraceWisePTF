@@ -37,8 +37,7 @@ class CofCComponentViewSet(viewsets.ModelViewSet):
 
 
 class VerifyCofCComponents(APIView):
-    authentication_class = []
-    permission_classes = [AllowAny]
+    permission_classes = [IsAuthenticated]
 
     def get(self, request):
         print("authorisation hearder")
