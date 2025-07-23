@@ -5,8 +5,8 @@ from api.product.models import Product
 
 
 class CofCComponentSerializer(serializers.ModelSerializer):
-    id=serializer.IntegerField(read_only=True)
-    
+    id=serializers.IntegerField(read_only=True)
+
     class Meta:
         model = CofCComponent
         fields = ["id", "certificate", "serial", "cast_code", "heat_code"]
