@@ -1,6 +1,14 @@
 from rest_framework import serializers
-from .models import CertificateOfConformance
+from .models import CertificateOfConformance, CofCComponent
 from api.product.models import Product
+
+
+
+class CofCComponentSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = CofCComponent
+        fields = '__all__'
+
 
 class CertificateOfConformanceSerializer(serializers.ModelSerializer):
     product = serializers.PrimaryKeyRelatedField(queryset=Product.objects.all())
