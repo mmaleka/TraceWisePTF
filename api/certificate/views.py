@@ -34,6 +34,8 @@ class CofCComponentViewSet(viewsets.ModelViewSet):
 
 
 class VerifyCofCComponents(APIView):
+    permission_classes = [IsAuthenticated]
+    
     def get(self, request):
         certificate_id = request.query_params.get("certificate")
         if not certificate_id:
