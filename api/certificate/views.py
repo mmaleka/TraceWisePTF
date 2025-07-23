@@ -1,5 +1,8 @@
 from rest_framework import viewsets
 from rest_framework.permissions import IsAuthenticated, AllowAny
+from rest_framework.authentication import SessionAuthentication, BasicAuthentication
+
+
 from .serializers import CertificateOfConformanceSerializer, CofCComponentSerializer
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -34,6 +37,7 @@ class CofCComponentViewSet(viewsets.ModelViewSet):
 
 
 class VerifyCofCComponents(APIView):
+    authentication_class = []
     permission_classes = [AllowAny]
 
     def get(self, request):

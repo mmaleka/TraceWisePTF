@@ -13,7 +13,7 @@ router.register(r'components', CofCComponentViewSet, basename='components')
 
 # Combine router and function-based endpoints
 urlpatterns = router.urls + [
-    path('cofc/verify/', VerifyCofCComponents.as_view(), name='verify-cofc-components'),
+    path('verify/', VerifyCofCComponents.as_view(), name='verify-cofc-components'),
 ]
 
 
