@@ -37,6 +37,7 @@ class VerifyCofCComponents(APIView):
     permission_classes = [AllowAny]
 
     def get(self, request):
+        print("authorisation hearder")
         certificate_id = request.query_params.get("certificate")
         if not certificate_id:
             return Response({"error": "Missing certificate ID"}, status=status.HTTP_400_BAD_REQUEST)
