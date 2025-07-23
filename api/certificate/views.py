@@ -19,6 +19,10 @@ class CofCComponentViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
+        # If detail view (e.g., DELETE api/certificate/components/1/), allow full queryset
+        if self.action in ['retrieve', 'destroy', 'update', 'partial_update']:
+            return CofCComponent.objects.all()
+
         certificate_id = self.request.query_params.get("certificate")
         if certificate_id:
             return CofCComponent.objects.filter(certificate_id=certificate_id)
