@@ -28,6 +28,8 @@ DEBUG = True
 
 ALLOWED_HOSTS = ["*"]
 
+AUTH_USER_MODEL = 'accounts.CustomUser'
+
 
 # Application definition
 
@@ -52,7 +54,8 @@ INSTALLED_APPS = [
     'api.cnc_machining',
     'api.banding',
     'api.final_inspection',
-    'api.certificate'
+    'api.certificate',
+    'api.accounts',
 ]
 
 MIDDLEWARE = [

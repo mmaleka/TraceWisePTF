@@ -1,5 +1,5 @@
 from django.db import models
-from django.contrib.auth.models import User
+from django.conf import settings
 from api.heat_treatment.models import HeatTreatmentBatch
 
 class Banding(models.Model):
@@ -12,7 +12,7 @@ class Banding(models.Model):
     diameter = models.DecimalField(max_digits=6, decimal_places=3)
     image = models.ImageField(upload_to='banding_images/', null=True, blank=True)
     date = models.DateTimeField(auto_now_add=True)
-    recorded_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
+    recorded_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True)
 
     def __str__(self):
         return f"{self.serial} - {self.product.name}"

@@ -1,12 +1,12 @@
 from django.db import models
-from django.contrib.auth.models import User
+from django.conf import settings
 from api.product.models import Product
 
 class CertificateOfConformance(models.Model):
     coc_number = models.CharField(max_length=10, unique=True, editable=False)
     product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name="certificates")
     comments = models.TextField(blank=True)
-    user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True)
     quantity = models.PositiveIntegerField(default=0)
     complete = models.BooleanField(default=False)
     date = models.DateTimeField(auto_now_add=True)

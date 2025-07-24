@@ -1,7 +1,7 @@
 # heat_treatment/models.py
 from django.db import models
 from api.product.models import Product
-from django.contrib.auth.models import User
+from django.conf import settings
 
 class HeatTreatmentBatch(models.Model):
     product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name="heat_treatment_records")
@@ -11,7 +11,7 @@ class HeatTreatmentBatch(models.Model):
     soft_shell = models.PositiveIntegerField()
     quantity = models.PositiveIntegerField()
     certificate = models.FileField(upload_to='certificates/', null=True, blank=True)
-    released_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
+    released_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True)
     released_at = models.DateField(auto_now_add=True)
 
     def __str__(self):

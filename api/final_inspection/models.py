@@ -1,5 +1,5 @@
 from django.db import models
-from django.contrib.auth.models import User
+from django.conf import settings
 from api.heat_treatment.models import HeatTreatmentBatch
 
 class FinalInspectionRecord(models.Model):
@@ -10,7 +10,7 @@ class FinalInspectionRecord(models.Model):
     cast_code = models.CharField(max_length=100)
     heat_code = models.CharField(max_length=100)
 
-    inspector = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
+    inspector = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True)
     determination = models.CharField(
         max_length=20,
         choices=[("Pass", "Pass"), ("Rework", "Rework"), ("Scrap", "Scrap")],

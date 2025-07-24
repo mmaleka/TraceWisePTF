@@ -21,4 +21,5 @@ urlpatterns = [
     path('banding/', include('api.banding.urls')),
     path('final_inspection/', include('api.final_inspection.urls')),
     path('certificate/', include('api.certificate.urls')),
+    path('api/', include('api.accounts.urls')),
 ]
