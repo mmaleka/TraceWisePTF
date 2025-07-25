@@ -1,7 +1,7 @@
 
 
 # ultrasonic/views.py
-from rest_framework import generics, permissions
+from rest_framework import generics, permissions, serializers
 from .models import UltrasonicTest
 from .serializers import UltrasonicTestSerializer
 from api.heat_treatment.models import HeatTreatmentBatch
