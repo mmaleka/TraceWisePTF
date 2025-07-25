@@ -5,7 +5,7 @@ from api.heat_treatment.models import HeatTreatmentBatch
 class CNCMachiningRecord(models.Model):
     heat_treatment = models.ForeignKey(HeatTreatmentBatch, on_delete=models.SET_NULL, null=True, blank=True, related_name="cnc_records")
     op_desc = models.CharField(max_length=100)
-    op_no = models.CharField(max_length=50)
+    op_no = models.CharField(max_length=50, null=True)
     machine_no = models.CharField(max_length=50)
     determination = models.CharField(max_length=20, choices=[("Pass", "Pass"), ("Rework", "Rework"), ("Scrap", "Scrap")])
     comments = models.TextField(blank=True, default="-")
