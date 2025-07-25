@@ -13,7 +13,16 @@ class FinalInspectionRecordViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
-        return FinalInspectionRecord.objects.all().order_by("-date")
+        queryset = super().get_queryset()
+        product_id = self.request.query_params.get("product")
+
+        if product_id:
+            queryset = queryset.filter(heat_treatment__product_id=product_id).order_by("-date")
+
+        return queryset
+
+    # def get_queryset(self):
+    #     return FinalInspectionRecord.objects.all().order_by("-date")
 
     def perform_create(self, serializer):
         serializer.save(inspector=self.request.user)
