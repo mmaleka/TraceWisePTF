@@ -1,7 +1,7 @@
 
 # banding/views.py
 
-from rest_framework import generics, permissions
+from rest_framework import generics, permissions, serializers
 from .models import Banding
 from .serializers import BandingSerializer
 from api.heat_treatment.models import HeatTreatmentBatch
