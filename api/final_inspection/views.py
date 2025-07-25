@@ -1,3 +1,6 @@
+
+
+
 from rest_framework import viewsets, status
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
@@ -16,25 +19,26 @@ class FinalInspectionRecordViewSet(viewsets.ModelViewSet):
         serializer.save(inspector=self.request.user)
 
     def create(self, request, *args, **kwargs):
-        # Handle batch create
         if isinstance(request.data, list):
-            serializer = self.get_serializer(data=request.data, many=True)
-            serializer.is_valid(raise_exception=True)
+            results = []
+            errors = []
 
-            saved_instances = []
-            for item in serializer.validated_data:
-                instance = FinalInspectionRecord.objects.create(
-                    inspector=request.user,
-                    heat_treatment=self._find_heat_batch(item),
-                    **item
-                )
-                saved_instances.append(instance)
+            for record_data in request.data:
+                serializer = self.get_serializer(data=record_data)
+                try:
+                    serializer.is_valid(raise_exception=True)
+                    instance = serializer.save(inspector=request.user)
+                    results.append(instance)
+                except serializers.ValidationError as e:
+                    errors.append({"serial": record_data.get("serial"), "error": e.detail})
 
-            # Return proper serialized output including ID
-            response_serializer = self.get_serializer(saved_instances, many=True)
-            return Response(response_serializer.data, status=status.HTTP_201_CREATED)
+            if errors:
+                return Response({"errors": errors}, status=status.HTTP_400_BAD_REQUEST)
+
+            return Response(self.get_serializer(results, many=True).data, status=status.HTTP_201_CREATED)
 
         return super().create(request, *args, **kwargs)
+
 
     
 

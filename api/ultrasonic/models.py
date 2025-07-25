@@ -9,12 +9,19 @@ class UltrasonicTest(models.Model):
         ('Scrap', 'Scrap'),
     ]
 
+    OPERATION_CHOICES = [
+        ('UT', 'UT'),
+        ('MPI', 'MPI'),
+    ]
+
     serial = models.CharField(max_length=50, unique=True)
     cast_code = models.CharField(max_length=50)
     heat_code = models.CharField(max_length=50)
 
     heat_treatment = models.ForeignKey(HeatTreatmentBatch, on_delete=models.SET_NULL, null=True, blank=True, related_name="ultrasonic_records")
     
+    operation_type = models.CharField(max_length=10, choices=OPERATION_CHOICES)
+
     sentence = models.CharField(max_length=10, choices=SENTENCE_CHOICES)
     comment = models.TextField(blank=True)
     date = models.DateField(auto_now_add=True)
@@ -22,4 +29,4 @@ class UltrasonicTest(models.Model):
 
 
     def __str__(self):
-        return self.serial
+        return f"{self.serial} - {self.cast_code} - {self.heat_code}"

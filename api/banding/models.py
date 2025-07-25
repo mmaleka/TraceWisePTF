@@ -15,4 +15,4 @@ class Banding(models.Model):
     recorded_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True)
 
     def __str__(self):
-        return f"{self.serial} - {self.product.name}"
+        return f"{self.serial} - {self.cast_code} - {self.heat_code}"
