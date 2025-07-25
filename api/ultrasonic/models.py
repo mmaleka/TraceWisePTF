@@ -20,7 +20,7 @@ class UltrasonicTest(models.Model):
 
     heat_treatment = models.ForeignKey(HeatTreatmentBatch, on_delete=models.SET_NULL, null=True, blank=True, related_name="ultrasonic_records")
     
-    operation_type = models.CharField(max_length=10, choices=OPERATION_CHOICES)
+    operation_type = models.CharField(max_length=10, choices=OPERATION_CHOICES, null=True)
 
     sentence = models.CharField(max_length=10, choices=SENTENCE_CHOICES)
     comment = models.TextField(blank=True)
