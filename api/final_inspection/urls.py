@@ -9,6 +9,13 @@ urlpatterns = [
     path('', include(router.urls)),
 ]
 
+# 📁 final_inspection/urls.py
+from .views import AvailableForCofCView
+
+urlpatterns += [
+    path("available/", AvailableForCofCView.as_view(), name="available-for-cofc"),
+]
+
 # Method	URL Path	Action
 # GET	/api/inspection/final-inspection/	List all inspection records
 # POST	/api/inspection/final-inspection/	Create one or more records

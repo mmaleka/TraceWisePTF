@@ -7,6 +7,48 @@ from rest_framework.permissions import IsAuthenticated
 from .models import FinalInspectionRecord
 from .serializers import FinalInspectionRecordSerializer
 
+
+# 📁 final_inspection/views.py
+from rest_framework.generics import ListAPIView
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.pagination import PageNumberPagination
+from django.db.models import Q
+from .models import FinalInspectionRecord
+from .serializers import FinalInspectionRecordSerializer
+from api.certificate.models import CofCComponent
+
+class AvailableForCofCView(ListAPIView):
+    serializer_class = FinalInspectionRecordSerializer
+    permission_classes = [IsAuthenticated]
+    pagination_class = PageNumberPagination
+
+    def get_queryset(self):
+        product_id = self.request.query_params.get("product_id")
+        search = self.request.query_params.get("search", "").strip()
+
+        used_components = CofCComponent.objects.values_list("serial", "cast_code", "heat_code")
+
+        filters = Q(determination="Pass")
+
+        if product_id:
+            filters &= Q(heat_treatment__product_id=product_id)
+
+        if search:
+            filters &= (
+                Q(serial__icontains=search) |
+                Q(cast_code__icontains=search) |
+                Q(heat_code__icontains=search)
+            )
+
+        for serial, cast_code, heat_code in used_components:
+            filters &= ~Q(serial=serial, cast_code=cast_code, heat_code=heat_code)
+
+        return FinalInspectionRecord.objects.filter(filters)
+
+
+
+
+
 class FinalInspectionRecordViewSet(viewsets.ModelViewSet):
     queryset = FinalInspectionRecord.objects.all().order_by("-date")
     serializer_class = FinalInspectionRecordSerializer
