@@ -14,13 +14,25 @@ from api.stamping.models import Stamping
 
 @api_view(['POST'])
 # @permission_classes([IsAuthenticated])
-def release_batch(request):
-    serializer = HeatTreatmentBatchSerializer(data=request.data)
-    if serializer.is_valid():
-        serializer.save(released_by=request.user)
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
-    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+def perform_create(self, serializer):
+        data = self.request.data
+        product_id = data.get("product")
+        cast_code = data.get("cast_code")
+        heat_code = data.get("heat_code")
 
+        batch, created = HeatTreatmentBatch.objects.get_or_create(
+            product_id=product_id,
+            cast_code=cast_code,
+            heat_code=heat_code,
+            defaults={
+                'hard_shell': 0,
+                'soft_shell': 0,
+                'quantity': 0,
+                'released_by': self.request.user,
+            }
+        )
+
+        serializer.save(batch=batch)
 @api_view(['GET'])
 # @permission_classes([IsAuthenticated])
 def list_batches(request):
