@@ -20,7 +20,7 @@ from api.certificate.models import CofCComponent
 class AvailableForCofCView(ListAPIView):
     serializer_class = FinalInspectionRecordSerializer
     permission_classes = [IsAuthenticated]
-    pagination_class = PageNumberPagination
+    # pagination_class = PageNumberPagination
 
     def get_queryset(self):
         product_id = self.request.query_params.get("product_id")
