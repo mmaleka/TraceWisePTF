@@ -20,7 +20,6 @@ from api.certificate.models import CofCComponent
 class AvailableForCofCView(ListAPIView):
     serializer_class = FinalInspectionRecordSerializer
     permission_classes = [IsAuthenticated]
-    # pagination_class = PageNumberPagination
 
     def get_queryset(self):
         product_id = self.request.query_params.get("product_id")
@@ -40,12 +39,11 @@ class AvailableForCofCView(ListAPIView):
                 Q(heat_code__icontains=search)
             )
 
+        exclude_q = Q()
         for serial, cast_code, heat_code in used_components:
-            filters &= ~Q(serial=serial, cast_code=cast_code, heat_code=heat_code)
+            exclude_q |= Q(serial=serial, cast_code=cast_code, heat_code=heat_code)
 
-        return FinalInspectionRecord.objects.filter(filters)
-
-
+        return FinalInspectionRecord.objects.filter(filters).exclude(exclude_q)
 
 
 

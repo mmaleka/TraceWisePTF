@@ -36,86 +36,101 @@ class CofCComponentViewSet(viewsets.ModelViewSet):
 
 
 
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework import status
+from rest_framework.permissions import IsAuthenticated
+from .models import CertificateOfConformance, CofCComponent
+from api.heat_treatment.models import HTComponent, HeatTreatmentBatch
+from api.ultrasonic.models import UltrasonicTest
+from api.final_inspection.models import FinalInspectionRecord
+from rest_framework.generics import ListAPIView
+from django.db.models import Q
+from api.final_inspection.serializers import FinalInspectionRecordSerializer
+
+
 class VerifyCofCComponents(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
-        print("authorisation hearder")
         certificate_id = request.query_params.get("certificate")
         if not certificate_id:
             return Response({"error": "Missing certificate ID"}, status=status.HTTP_400_BAD_REQUEST)
 
-        # Fetch certificate
         try:
             certificate = CertificateOfConformance.objects.get(id=certificate_id)
         except CertificateOfConformance.DoesNotExist:
             return Response({"error": "Certificate not found"}, status=status.HTTP_404_NOT_FOUND)
 
-        # Get CofC components
         components = CofCComponent.objects.filter(certificate_id=certificate_id)
-        serials = components.values_list("serial", flat=True)
-
-        # Set quantity directly
         certificate.quantity = components.count()
 
-        # Check each linked requirement
+        # Lists to track missing validations
         missing_heat_treatment = []
         missing_ut = []
         missing_mpi = []
-        # missing_balancing = []
         missing_final_inspection = []
 
-        for serial in serials:
-            heat = HeatTreatmentBatch.objects.filter(serial=serial).first()
-            if not heat:
+        for component in components:
+            serial = component.serial
+            cast_code = component.cast_code
+            heat_code = component.heat_code
+
+            ht_component = HTComponent.objects.filter(
+                serial=serial,
+                cast_code=cast_code,
+                heat_code=heat_code
+            ).first()
+
+            if not ht_component:
                 missing_heat_treatment.append(serial)
                 continue
 
-            if not UltrasonicTest.objects.filter(heat_treatment=heat).exists():
+            batch = ht_component.batch
+
+            if not UltrasonicTest.objects.filter(heat_treatment=batch, operation_type="UT").exists():
                 missing_ut.append(serial)
 
-            # if not MPIResult.objects.filter(heat_treatment=heat).exists():
-            #     missing_mpi.append(serial)
+            if not UltrasonicTest.objects.filter(heat_treatment=batch, operation_type="MPI").exists():
+                missing_mpi.append(serial)
 
-            # if not BalancingData.objects.filter(heat_treatment=heat).exists():
-            #     missing_balancing.append(serial)
-
-            if not FinalInspectionRecord.objects.filter(heat_treatment=heat).exists():
+            if not FinalInspectionRecord.objects.filter(heat_treatment=batch).exists():
                 missing_final_inspection.append(serial)
 
-        # Helper to summarize results
         def summarize(missing_list):
             return "All Complete" if not missing_list else ", ".join(missing_list)
 
-        # Update CofC status fields
+        # Update and save status on the certificate
         certificate.heat_treatment = summarize(missing_heat_treatment)
         certificate.ut = summarize(missing_ut)
         certificate.mpi = summarize(missing_mpi)
         certificate.final_inspection = summarize(missing_final_inspection)
-
-        # Complete if no missing
         certificate.complete = all([
             not missing_heat_treatment,
             not missing_ut,
             not missing_mpi,
-            # not missing_balancing,
             not missing_final_inspection
         ])
-
         certificate.save()
+
+        checklist = [
+            "❌ Heat Treatment: Missing items" if missing_heat_treatment else "✔ Heat Treatment: All Complete",
+            "❌ UT: Missing items" if missing_ut else "✔ UT: All Complete",
+            "❌ MPI: Missing items" if missing_mpi else "✔ MPI: All Complete",
+            "❌ Final Inspection: Missing items" if missing_final_inspection else "✔ Final Inspection: All Complete"
+        ]
 
         return Response({
             "missing": {
                 "heat_treatment": missing_heat_treatment,
-                "UT": "All Complete" if not missing_ut else missing_ut,
-                "MPI": "All Complete" if not missing_mpi else missing_mpi,
-                # "Balancing": "All Complete" if not missing_balancing else missing_balancing,
-                "final_inspection": "All Complete" if not missing_final_inspection else missing_final_inspection,
+                "UT": missing_ut,
+                "MPI": missing_mpi,
+                "final_inspection": missing_final_inspection,
             },
+            "checklist": checklist,
             "complete": certificate.complete,
             "quantity": certificate.quantity,
         }, status=status.HTTP_200_OK)
-
 
 
 class CertificateOfConformanceViewSet(viewsets.ModelViewSet):
