@@ -56,6 +56,7 @@ INSTALLED_APPS = [
     'api.final_inspection',
     'api.certificate',
     'api.accounts',
+    'api.reports',
 ]
 
 MIDDLEWARE = [
