@@ -89,13 +89,13 @@ class VerifyCofCComponents(APIView):
             batch = ht_component.batch
 
             if not UltrasonicTest.objects.filter(heat_treatment=batch, operation_type="UT").exists():
-                missing_ut.append(serial)
+                missing_ut.append([serial, cast_code, heat_code])
 
             if not UltrasonicTest.objects.filter(heat_treatment=batch, operation_type="MPI").exists():
-                missing_mpi.append(serial)
+                missing_mpi.append([serial, cast_code, heat_code])
 
             if not FinalInspectionRecord.objects.filter(heat_treatment=batch).exists():
-                missing_final_inspection.append(serial)
+                missing_final_inspection.append([serial, cast_code, heat_code])
 
         def summarize(missing_list):
             return "All Complete" if not missing_list else ", ".join(missing_list)
