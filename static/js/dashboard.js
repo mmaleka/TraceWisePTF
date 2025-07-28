@@ -1,16 +1,17 @@
-console.log("mpho");
+console.log("dashboard 2");
 
-document.addEventListener("DOMContentLoaded", function () {
-  const token = sessionStorage.getItem("access_token");
-  const username = sessionStorage.getItem("username"); // assuming you save this after login
-  const navbarUser = document.getElementById("navbarUser");
+// document.addEventListener("DOMContentLoaded", function () {
+//   const token = sessionStorage.getItem("access_token");
+//   const username = sessionStorage.getItem("username"); // assuming you save this after login
+//   const navbarUser = document.getElementById("navbarUser");
 
-  if (token && username) {
-    navbarUser.textContent = `Welcome, ${username}`;
-  } else {
-    navbarUser.innerHTML = `<a href="/login/" class="text-white text-decoration-none">Sign In</a>`;
-  }
-});
+//   if (token && username) {
+//     navbarUser.textContent = `Welcome, ${username}`;
+//   } else {
+//     navbarUser.innerHTML = `<a href="#" onclick="navigateTo('dashboard')" class="text-white text-decoration-none">Sign In</a>`;
+//   }
+// });
+
 
 
 
@@ -19,11 +20,11 @@ document.addEventListener("DOMContentLoaded", function () {
 //////////
 document.addEventListener("DOMContentLoaded", async function () {
   const token = localStorage.getItem("authToken");
-  console.log("token: ", token)
+  console.log("token...: ", token)
 
   if (!token) {
     // Token missing = not logged in → redirect to login page
-    // window.location.href = "login.html";
+    navigateTo('login')
     return;
   }
 
@@ -54,3 +55,4 @@ document.addEventListener("DOMContentLoaded", async function () {
     // window.location.href = "login.html";
   }
 });
+

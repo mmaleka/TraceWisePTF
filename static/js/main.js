@@ -1,5 +1,7 @@
 
 function loadPage(pageName) {
+  console.log("navigatins");
+  
   const url = `/static/html/${pageName}.html`;
 
   fetch(url)

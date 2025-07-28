@@ -1,20 +1,15 @@
-// // Optional placeholder for future navigation
-// document.querySelectorAll(".nav-card").forEach((card) => {
-//   card.addEventListener("click", (e) => {
-//     e.preventDefault();
-//     console.log("This would33 go to the " + card.textContent + " page.");
-
-//   });
-// });
-
-// document.querySelectorAll(".nav-card").forEach(card => {
-//   card.addEventListener("click", (e) => {
-//     e.preventDefault();
-//     const page = card.getAttribute("data-page");
-//     if (page) navigateTo(page);
-//   });
-// });
-
-
 console.log("mpho");
+
+document.addEventListener("DOMContentLoaded", function () {
+  const token = sessionStorage.getItem("access_token");
+  const username = sessionStorage.getItem("username"); // assuming you save this after login
+  const navbarUser = document.getElementById("navbarUser");
+
+  if (token && username) {
+    navbarUser.textContent = `Welcome, ${username}`;
+  } else {
+    navbarUser.innerHTML = `<a href="#" onclick="navigateTo('dashboard') class="text-white text-decoration-none">Sign In</a>`;
+  }
+});
+
 

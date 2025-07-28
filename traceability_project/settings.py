@@ -74,7 +74,8 @@ MIDDLEWARE = [
 
 CORS_ALLOWED_ORIGINS = [
     "https://cdpn.io",  # ✅ explicitly allow CodePen
-    "https://yourfrontend.com",  # if you deploy frontend elsewhere later
+    "http://127.0.0.1:8000",  # if you deploy frontend elsewhere later
+    "https://tracewiseptf.onrender",
 ]
 CORS_ALLOW_CREDENTIALS = True
 

@@ -1,19 +1,20 @@
+<!-- CSS -->
+<link rel="stylesheet" href="/static/css/dashboard.css" />
 <div class="dashboard-container">
   <h1 id="adminWelcome">👋 Welcome to the Traceability System</h1>
 
   <p>Select a process to begin:</p>
   <div class="nav-grid">
-    <a href="#" class="nav-card">🔥 Heat Treatment</a>
-    <a href="#" class="nav-card">🧪 Hardness Data</a>
-    <a href="#" class="nav-card">🔍 Ultrasonic Testing</a>
-    <a href="#" class="nav-card">🪓 Final Stamping</a>
-    <a href="#" class="nav-card">⚙️ CNC Machining</a>
-    <a href="#" class="nav-card">💢 Banding</a>
-    <a href="#" class="nav-card">🧲 MPI</a>
-    <a href="#" class="nav-card">✅ Final Inspection</a>
-    <a href="#" class="nav-card">📄 Certificate of Conformance</a>
-    <a href="#" class="nav-card">📊 Reports</a>
-    
-    <a href="#" class="nav-card">🛠️ Admin</a> <!-- New -->
+    <a href="#" class="nav-card" onclick="navigateTo('heat_treatment')">🔥 Heat Treatment</a>
+    <a href="#" class="nav-card" onclick="navigateTo('ut')">🔍 Ultrasonic Testing</a>
+    <a href="#" class="nav-card" onclick="navigateTo('stamping')">🪓 Final Stamping</a>
+    <a href="#" class="nav-card" onclick="navigateTo('cnc')">⚙️ CNC Machining</a>
+    <a href="#" class="nav-card" onclick="navigateTo('banding')">💢 Banding</a>
+    <a href="#" class="nav-card" onclick="navigateTo('mpi')">🧲 MPI</a>
+    <a href="#" class="nav-card" onclick="navigateTo('inspection')">✅ Final Inspection</a>
+    <a href="#" class="nav-card" onclick="navigateTo('coc')">📄 Certificate of Conformance</a>
+    <a href="#" class="nav-card" onclick="navigateTo('reports')">📊 Reports</a>
+    <a href="#" class="nav-card" onclick="navigateTo('reports')">🛠️ Admin</a>
   </div>
 </div>
+

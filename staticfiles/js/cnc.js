@@ -29,10 +29,12 @@ export function init() {
     e.preventDefault();
 
     const newRecord = {
+        serial: document.getElementById("serialNumber").value,
+        castCode: document.getElementById("castCode").value,
+        heatCode: document.getElementById("heatCode").value,
         opDesc: document.getElementById("opDesc").value,
         opNo: document.getElementById("opNo").value,
         machineNo: document.getElementById("machineNo").value,
-        // product: document.getElementById("cncProduct").value,
         product: document.getElementById("Product").value,
         determination: document.getElementById("cncDetermination").value,
         comments: document.getElementById("cncComments").value || "-",
