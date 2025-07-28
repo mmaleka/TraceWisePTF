@@ -4,12 +4,12 @@ from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
 from django.db.models import Q
 from api.heat_treatment.models import HTComponent
-from api.cnc.models import CNCMachiningRecord
+from api.cnc_machining.models import CNCMachiningRecord
 from api.ultrasonic.models import UltrasonicTest
-from api.stamping.models import StampingRecord
-from api.banding.models import BandingRecord
-from api.nosethread.models import NoseThreadRecord
-from api.mpi.models import MPIRecord
+from api.stamping.models import Stamping
+from api.banding.models import Banding
+# from api.nosethread.models import NoseThreadRecord
+# from api.mpi.models import MPIRecord
 from api.final_inspection.models import FinalInspectionRecord
 from api.certificate.models import CertificateOfConformance
 
@@ -47,6 +47,16 @@ class WIPSummaryAPIView(APIView):
                     determination="Pass"
                 ).exists()
 
+
+            def has_passed_ultrasonic(operation_type):
+                return UltrasonicTest.objects.filter(
+                    heat_treatment=ht_batch,
+                    operation_type=operation_type,
+                    sentence="Pass"
+                ).exists()
+
+
+
             def has_passed(model):
                 return model.objects.filter(heat_treatment=ht_batch).exists()
 
@@ -63,7 +73,7 @@ class WIPSummaryAPIView(APIView):
             if not has_passed_cnc("Final Machine Ogive"):
                 wip_counts["Final Machine Ogive"] += 1
                 continue
-            if not has_passed(UltrasonicTest):
+            if not has_passed_ultrasonic("UT"):
                 wip_counts["Ultrasonic"] += 1
                 continue
             if not has_passed(StampingRecord):
@@ -72,10 +82,10 @@ class WIPSummaryAPIView(APIView):
             if not has_passed(BandingRecord):
                 wip_counts["Banding"] += 1
                 continue
-            if not has_passed(NoseThreadRecord):
+            if not has_passed_cnc("Nose Thread"):
                 wip_counts["Nose Threads"] += 1
                 continue
-            if not has_passed(MPIRecord):
+            if not has_passed_ultrasonic("MPI"):
                 wip_counts["MPI"] += 1
                 continue
             if not has_passed(FinalInspectionRecord):
