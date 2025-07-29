@@ -11,6 +11,13 @@ class CNCMachiningListCreateView(generics.ListCreateAPIView):
     serializer_class = CNCMachiningSerializer
     permission_classes = [IsAuthenticated]
 
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        op_desc = self.request.query_params.get("op_desc")
+        if op_desc:
+            queryset = queryset.filter(op_desc=op_desc)
+        return queryset
+
     def perform_create(self, serializer):
         cast_code = self.request.data.get("cast_code")
         heat_code = self.request.data.get("heat_code")

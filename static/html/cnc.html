@@ -39,13 +39,12 @@
 
       <div class="mb-3">
         <label class="form-label">Op Description</label>
-        <input type="text" class="form-control" id="opDesc" required />
+        <!-- <input type="text" class="form-control" id="opDesc" required /> -->
+        <select class="form-select" id="opDesc" required>
+          <option value="">-- Select --</option>
+        </select>
       </div>
 
-      <div class="mb-3">
-        <label class="form-label">Op Number</label>
-        <input type="text" class="form-control" id="opNo" required />
-      </div>
 
       <div class="mb-3">
         <label class="form-label">Machine No</label>
@@ -54,13 +53,7 @@
 
       <div class="mb-3">
         <label for="Product" class="form-label">Product</label>
-        <input type="text" class="form-control" id="Product" required />
-        <!-- <select class="form-select" id="cncProduct" required>
-          <option value="">-- Select Product --</option>
-          <option value="155mm HE Shell">155mm HE Shell</option>
-          <option value="155mm Smoke Shell">155mm Smoke Shell</option>
-          <option value="155mm Base Bleed Shell">155mm Base Bleed Shell</option>
-        </select> -->
+        <input type="text" class="form-control" id="Product" />
       </div>
 
       <div class="mb-3">
@@ -100,7 +93,6 @@
         <thead class="table-primary">
           <tr>
             <th>Op Description</th>
-            <th>Op No</th>
             <th>Machine</th>
             <th>Product</th>
             <th>Determination</th>

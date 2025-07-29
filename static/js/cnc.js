@@ -18,6 +18,8 @@ export function init() {
         alert("✅ Changes saved successfully!");
     });
 
+    const token = localStorage.getItem("authToken");
+
 
     
     // const utRecords = []; // Your table data
@@ -25,23 +27,59 @@ export function init() {
     document.getElementById("Product").value = "155mm HE";
 
     // Handle form submission
-    document.getElementById("utForm").addEventListener("submit", function (e) {
+    document.getElementById("utForm").addEventListener("submit", async function (e) {
     e.preventDefault();
 
     const newRecord = {
-        serial: document.getElementById("serialNumber").value,
-        castCode: document.getElementById("castCode").value,
-        heatCode: document.getElementById("heatCode").value,
-        opDesc: document.getElementById("opDesc").value,
-        opNo: document.getElementById("opNo").value,
-        machineNo: document.getElementById("machineNo").value,
-        product: document.getElementById("Product").value,
-        determination: document.getElementById("cncDetermination").value,
-        comments: document.getElementById("cncComments").value || "-",
-        shift: getCurrentShift(),
-        user: currentUser,
-        date: new Date().toLocaleString()
+      serialNumber: document.getElementById("serialNumber").value,
+      castCode: document.getElementById("castCode").value,
+      heatCode: document.getElementById("heatCode").value,
+      op_desc: document.getElementById("opDesc").value,
+      machine_no: document.getElementById("machineNo").value,
+      determination: document.getElementById("cncDetermination").value,
+      comments: document.getElementById("cncComments").value || "-",
+      shift: getCurrentShift()
     };
+
+    try {
+      const response = await fetch("https://tracewiseptf.onrender.com/api/cnc_machining/cnc-machining/", {
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${token}`,
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify(newRecord)
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.detail || Object.values(data).join(" "));
+      }
+
+      const savedRecord = await response.json();
+
+      // Append to frontend table with user and date info
+      utRecords.unshift({
+        ...newRecord,
+        user: currentUser,
+        date: new Date(savedRecord.date).toLocaleString()
+      });
+
+      renderUTTable();
+      this.reset();
+      closeFormPanel();
+    } catch (err) {
+      console.error("❌ Error saving CNC record:", err.message);
+      
+      // ✅ Show in alert or below form
+      const messageDiv = document.getElementById("utMessage");
+      messageDiv.textContent = `❌ ${err.message}`;
+      messageDiv.style.color = "red";
+      // alert("❌ Failed to save CNC record.");
+    }
+
+
 
     utRecords.unshift(newRecord);
         renderUTTable();
@@ -50,15 +88,18 @@ export function init() {
     });
 
 
+
+
+
+
     // Initial render
-    renderUTTable();
+    fetchCurrentUser();
+    populateOPDescOptions();
+    loadCNCMachiningRecords();
 
 
 }
 
-
-// Simulated session username (replace with real session later)
-const currentUser = "j.molefe"; // or dynamically set this after login
 
 function closeFormPanel() {
     document.getElementById("utFormPanel").classList.remove("open");
@@ -79,7 +120,6 @@ function openFormPanel() {
     document.body.appendChild(overlay);
 }
 
-  
  
 // Attach change listener to dropdowns
 document.querySelectorAll(".sentence-dropdown").forEach(select => {
@@ -97,46 +137,135 @@ document.querySelectorAll(".sentence-dropdown").forEach(select => {
 
 
 
-const utRecords = [
-  {
-    opDesc: "Rough Bore",
-    opNo: "101",
-    machineNo: "M01",
-    product: "155mm HE Shell",
-    determination: "Pass",
-    comments: "No issues observed",
-    shift: getCurrentShift(),
-    user: currentUser,
-    date: new Date().toLocaleString()
-  },
-  {
-    opDesc: "Fine Bore",
-    opNo: "102",
-    machineNo: "M02",
-    product: "155mm Smoke Shell",
-    determination: "Rework",
-    comments: "Tool chatter detected",
-    shift: getCurrentShift(),
-    user: currentUser,
-    date: new Date().toLocaleString()
-  },
-  {
-    opDesc: "Groove Cutting",
-    opNo: "103",
-    machineNo: "M03",
-    product: "155mm Base Bleed Shell",
-    determination: "Scrap",
-    comments: "Excess material left",
-    shift: getCurrentShift(),
-    user: currentUser,
-    date: new Date().toLocaleString()
+
+
+
+
+let currentUser = "Unknown";
+const utRecords = []; // Global CNC records array
+
+async function fetchCurrentUser() {
+  const token = localStorage.getItem("authToken");
+  if (!token) return;
+
+  try {
+    const response = await fetch("https://tracewiseptf.onrender.com/api/whoami/", {
+      headers: {
+        "Authorization": `Bearer ${token}`,
+        "Content-Type": "application/json"
+      }
+    });
+
+    if (response.ok) {
+      const user = await response.json();
+      currentUser = user.username; // or use user.first_name + " " + user.last_name
+      console.log("✅ Logged in as:", currentUser);
+    } else {
+      console.warn("❌ Failed to fetch user info");
+    }
+  } catch (err) {
+    console.error("Error fetching current user:", err);
   }
-];
+}
+
+
+
+async function populateOPDescOptions() {
+  const token = localStorage.getItem("authToken");
+  if (!token) return;
+
+  try {
+    const response = await fetch("https://tracewiseptf.onrender.com/api/cnc_machining/cnc-operations/", {
+      headers: {
+        "Authorization": `Bearer ${token}`,
+        "Content-Type": "application/json"
+      }
+    });
+    if (response.ok) {
+      const products = await response.json();
+      const select = document.getElementById("opDesc");
+      select.innerHTML = '<option value="" disabled selected>Select a product</option>';
+      products.forEach(p => {
+        const opt = document.createElement("option");
+        opt.value = p.id;
+        opt.textContent = p.name;
+        select.appendChild(opt);
+      });
+    }
+  } catch (err) {
+    console.error("Error loading products descriptions:", err);
+  }
+}
+
+
+
+async function loadCNCMachiningRecords() {
+  console.log("loadCNCMachiningRecords");
+  
+  const token = localStorage.getItem("authToken");
+  if (!token) return;
+
+  try {
+
+    const opDesc = "Final Machine Ogive"; // or "Pre-machine Ogive", etc.
+
+    const response = await fetch(`https://tracewiseptf.onrender.com/api/cnc_machining/cnc-machining?op_desc=${encodeURIComponent(opDesc)}`, {
+      headers: {
+        "Authorization": `Bearer ${token}`,
+        "Content-Type": "application/json"
+      }
+    });
+
+    // const response = await fetch("https://tracewiseptf.onrender.com/api/cnc_machining/cnc-machining", {
+    //   headers: {
+    //     "Authorization": `Bearer ${token}`,
+    //     "Content-Type": "application/json"
+    //   }
+    // });
+
+    if (!response.ok) {
+      throw new Error("Failed to fetch CNC records");
+    }
+
+    const data = await response.json();
+    console.log("data: ", data);
+
+    // Convert and populate into utRecords
+    utRecords.length = 0; // Clear old values
+    data.forEach(record => {
+      utRecords.push({
+        opDesc: record.op_desc,
+        machineNo: record.machine_no,
+        product: record.product,
+        determination: record.determination,
+        comments: record.comments || "-",
+        shift: record.shift,
+        user: record.recorded_by_username || "Unknown",
+        date: new Date(record.date_recorded).toLocaleString()
+      });
+    });
+
+    renderUTTable();
+  } catch (error) {
+    console.error("❌ Error loading CNC records:", error);
+  }
+}
+
+
+
+
+
+
+
 
 
 function renderUTTable() {
   const tbody = document.getElementById("utTableBody");
   tbody.innerHTML = "";
+  if (utRecords.length === 0) {
+      utTableBody.innerHTML = "<tr><td colspan='10'>No Machining Records found.</td></tr>";
+      return;
+  }
 
   utRecords.forEach((r, i) => {
     const row = document.createElement("tr");
@@ -166,18 +295,6 @@ function renderUTTable() {
     tbody.appendChild(row);
   });
 }
-
-// export function updateCNCDropdown(index, value) {
-//   cncRecords[index].determination = value;
-// }
-// // Expose globally so inline HTML can access it
-// window.updateCNCDropdown = updateCNCDropdown;
-
-// export function updateCNCComment(index, text) {
-//   cncRecords[index].comments = text.trim() || "-";
-// }
-// // Expose globally so inline HTML can access it
-// window.updateCNCComment = updateCNCComment;
 
 
 
