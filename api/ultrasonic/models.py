@@ -14,7 +14,7 @@ class UltrasonicTest(models.Model):
         ('MPI', 'MPI'),
     ]
 
-    serial = models.CharField(max_length=50, unique=True)
+    serial = models.CharField(max_length=50)
     cast_code = models.CharField(max_length=50)
     heat_code = models.CharField(max_length=50)
 

@@ -56,21 +56,13 @@ export function init() {
         });
 
         const data = await response.json();
+        console.log("ut data: ", data);
+        
 
         if (!response.ok) {
         throw new Error(data.detail || Object.values(data).join(" "));
         }
 
-        utRecords.unshift({
-        serial,
-        cast_code: castCode,
-        heat_code: heatCode,
-        Product,
-        operation_type,
-        sentence,
-        comment,
-        date
-        });
 
         renderUTTable();
         document.getElementById("utMessage").textContent = `✅ Result saved for ${serial}`;
@@ -86,7 +78,7 @@ export function init() {
 
 
 
-    utRecords.unshift({ serial, castCode, heatCode, Product, operation_type, sentence, comment, date });
+    utRecords.unshift({ serial, cast_code, heat_code, Product, operation_type, sentence, comment, date });
 
     
 
@@ -167,7 +159,7 @@ async function fetchUltrasonicRecords() {
   const token = localStorage.getItem("authToken");
 
   try {
-    const response = await fetch("https://tracewiseptf.onrender.com/api/ultrasonic/records/", {
+    const response = await fetch("https://tracewiseptf.onrender.com/api/ultrasonic/records/?operation_type=UT", {
       headers: {
         "Authorization": `Bearer ${token}`,
         "Content-Type": "application/json"
@@ -203,6 +195,8 @@ function renderUTTable() {
         <td>${record.serial}</td>
         <td>${record.cast_code}</td>
         <td>${record.heat_code}</td>
+        <td>${record.product_name}</td> 
+        <td>${record.operation_type}</td>
         <td>
           <select class="form-select form-select-sm sentence-dropdown" data-index="${index}">
             <option value="Pass" ${record.sentence === "Pass" ? "selected" : ""}>✅ Pass</option>
