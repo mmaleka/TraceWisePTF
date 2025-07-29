@@ -75,16 +75,22 @@ class ComponentTraceabilityReport(APIView):
                 for obj in queryset
             ]
 
-        # Get Heat Treatment Batch
-        ht_components = HTComponent.objects.filter(serial=shell, cast_code=cast, heat_code=heat)
-        ht_batch = ht_components.first().batch if ht_components.exists() else None
+
+
+        try:
+            # ✅ Get the batch from HeatTreatmentBatch only
+            ht_batch = HeatTreatmentBatch.objects.get(cast_code=cast, heat_code=heat)
+        except HeatTreatmentBatch.DoesNotExist:
+            return Response({"detail": "Heat treatment batch not found."}, status=status.HTTP_404_NOT_FOUND)
 
         ht_data = {
-            "product": ht_batch.product.name if ht_batch and hasattr(ht_batch, "product") else "",
-            "quantity": ht_components.count(),
-            "soft": ht_components.filter(determination="Soft").count(),
-            "hard": ht_components.filter(determination="Accepted").count(),
-            "records": serialize_queryset(ht_components)
+            "product": ht_batch.product.name,
+            "quantity": ht_batch.quantity,
+            "soft": ht_batch.soft_shell,
+            "hard": ht_batch.hard_shell,
+            "certificate": getattr(ht_batch.certificate, 'url', None),
+            "released_by": ht_batch.released_by.username if ht_batch.released_by else None,
+            "released_at": ht_batch.released_at
         }
 
         # CNC Operations: Fetch all operations
@@ -218,12 +224,12 @@ class OperationFilterReport(APIView):
             qs = Banding.objects.filter(performed_at__range=(start, end))
             records = [serialize(obj, obj.shell, obj.cast, obj.heat) for obj in qs]
 
-        elif operation == "Balancing":
-            qs = BalancingComponent.objects.filter(performed_at__range=(start, end))
-            records = [serialize(obj, obj.shell, obj.cast, obj.heat) for obj in qs]
+        # elif operation == "Balancing":
+        #     qs = BalancingComponent.objects.filter(performed_at__range=(start, end))
+        #     records = [serialize(obj, obj.shell, obj.cast, obj.heat) for obj in qs]
 
         elif operation == "Final Inspection":
-            qs = FinalInspectionComponent.objects.filter(performed_at__range=(start, end))
+            qs = FinalInspectionRecord.objects.filter(performed_at__range=(start, end))
             records = [serialize(obj, obj.shell, obj.cast, obj.heat) for obj in qs]
 
         elif operation == "Certificate of Conformance":
@@ -302,10 +308,12 @@ class WIPSummaryAPIView(APIView):
             if not has_passed_ultrasonic("UT"):
                 wip_counts["Ultrasonic"] += 1
                 continue
-            if not has_passed(StampingRecord):
+
+            if not has_passed(Stamping):
                 wip_counts["Stamping"] += 1
                 continue
-            if not has_passed(BandingRecord):
+
+            if not has_passed(Banding):
                 wip_counts["Banding"] += 1
                 continue
             if not has_passed_cnc("Nose Thread"):

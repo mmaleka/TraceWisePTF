@@ -9,97 +9,118 @@ export function init() {
     document.getElementById("filterByOperationBtn").addEventListener("click", () => {
         filterByOperation()
     });
+    document.getElementById("fetchWipSummaryBtn").addEventListener("click", () => {
+        fetchWipSummary()
+    });
 
 }
 
-function searchComponent() {
+
+
+
+let currentUser = "Unknown";
+const token = localStorage.getItem("authToken");
+
+// Fetch current user info
+async function fetchCurrentUser() {
+  if (!token) return;
+
+  try {
+    const res = await fetch("https://tracewiseptf.onrender.com/api/whoami/", {
+      headers: {
+        "Authorization": `Bearer ${token}`,
+        "Content-Type": "application/json"
+      }
+    });
+
+    if (res.ok) {
+      const user = await res.json();
+      currentUser = user.username;
+      console.log("✅ Logged in as:", currentUser);
+    }
+  } catch (err) {
+    console.error("User fetch failed:", err);
+  }
+}
+
+
+
+
+
+
+
+export function searchComponent() {
   const shell = document.getElementById("shellInput").value.trim();
   const cast = document.getElementById("castInput").value.trim();
   const heat = document.getElementById("heatInput").value.trim();
 
-  // Show result container
-  document.getElementById("resultContainer").classList.remove("d-none");
-
-  // Dummy data for all stages — replace with real data source or API calls later
-
-  const heatTreatmentData = {
-    product: "Shell Casing",
-    quantity: 100,
-    soft: 10,
-    hard: 90,
-    records: [
-      { user: "j.molefe", date: "2025-07-08", determination: "Accepted", defect: "" },
-      { user: "t.sibeko", date: "2025-07-09", determination: "Rework", defect: "Soft hardness" },
-    ]
-  };
-
-  const ultrasonicTestingData = [
-    { user: "j.dlamini", date: "2025-07-10", determination: "Accepted", defect: "" },
-    { user: "m.khoza", date: "2025-07-11", determination: "Scrap", defect: "Crack" }
-  ];
-
-  const finalStampingData = [
-    { user: "s.ngema", date: "2025-07-12", determination: "Accepted", defect: "" },
-  ];
-
-  const cncOperationsData = [
-    { user: "a.motshekga", date: "2025-07-13", determination: "Accepted", defect: "" },
-    { user: "l.mabena", date: "2025-07-14", determination: "Rework", defect: "Dimension off" }
-  ];
-
-  const mpiData = [
-    { user: "m.sebeko", date: "2025-07-15", determination: "Accepted", defect: "" },
-  ];
-
-  const bandingData = [
-    { user: "r.phiri", date: "2025-07-16", determination: "Accepted", defect: "" },
-  ];
-
-  const balancingData = [
-    { user: "c.khosa", date: "2025-07-17", determination: "Accepted", defect: "" },
-  ];
-
-  const finalInspectionData = [
-    { user: "k.molefe", date: "2025-07-18", determination: "Accepted", defect: "" },
-  ];
-
-  const cofCData = [
-    { user: "v.dube", date: "2025-07-19", determination: "Completed", defect: "" },
-  ];
-
-  // Utility function to fill table by id and data array
-  function fillTable(tableBodyId, data) {
-    const tbody = document.getElementById(tableBodyId);
-    tbody.innerHTML = "";
-    data.forEach(row => {
-      const tr = document.createElement("tr");
-      tr.innerHTML = `
-        <td>${row.user}</td>
-        <td>${row.date}</td>
-        <td>${row.determination}</td>
-        <td>${row.defect || "-"}</td>
-      `;
-      tbody.appendChild(tr);
-    });
+  if (!shell || !cast || !heat) {
+    alert("Please enter all fields: Shell, Cast, and Heat.");
+    return;
   }
 
-  // Populate Heat Treatment special fields
-  document.getElementById("htProduct").textContent = heatTreatmentData.product;
-  document.getElementById("htQuantity").textContent = heatTreatmentData.quantity;
-  document.getElementById("htSoft").textContent = heatTreatmentData.soft;
-  document.getElementById("htHard").textContent = heatTreatmentData.hard;
-  fillTable("htTableBody", heatTreatmentData.records);
+  // Show result container
+  document.getElementById("resultContainer").classList.remove("d-none");
+  
+  
+  fetch(`https://tracewiseptf.onrender.com/api/reports/traceability/?shell=${shell}&cast=${cast}&heat=${heat}`, {
+  headers: {
+    "Authorization": `Bearer ${token}`,
+    "Content-Type": "application/json"
+  }
+})
+  .then(response => {
+    if (!response.ok) throw new Error("Failed to fetch traceability data.");
+    return response.json();
+  })
+  .then(data => {
 
-  // Populate other stages tables
-  fillTable("utTableBody", ultrasonicTestingData);
-  fillTable("fsTableBody", finalStampingData);
-  fillTable("cncTableBody", cncOperationsData);
-  fillTable("mpiTableBody", mpiData);
-  fillTable("bandingTableBody", bandingData);
-  fillTable("balancingTableBody", balancingData);
-  fillTable("fiTableBody", finalInspectionData);
-  fillTable("cocTableBody", cofCData);
+  // fetch(`https://tracewiseptf.onrender.com/api/component-traceability/?shell=${shell}&cast=${cast}&heat=${heat}`)
+  //   .then((response) => {
+  //     if (!response.ok) throw new Error("Failed to fetch data.");
+  //     return response.json();
+  //   })
+  //   .then((data) => {
+  //     // Heat Treatment
+      document.getElementById("htProduct").textContent = data.heat_treatment.product || "-";
+      document.getElementById("htQuantity").textContent = data.heat_treatment.quantity || "0";
+      document.getElementById("htSoft").textContent = data.heat_treatment.soft || "0";
+      document.getElementById("htHard").textContent = data.heat_treatment.hard || "0";
+      fillTable("htTableBody", data.heat_treatment.records || []);
+
+      // Other sections
+      fillTable("utTableBody", data.ultrasonic_testing || []);
+      fillTable("fsTableBody", data.final_stamping || []);
+      fillTable("cncTableBody", data.cnc_machining || []);
+      fillTable("mpiTableBody", data.mpi || []);
+      fillTable("bandingTableBody", data.banding || []);
+      fillTable("balancingTableBody", data.balancing || []);
+      fillTable("fiTableBody", data.final_inspection || []);
+      fillTable("cocTableBody", data.certificate_of_conformance || []);
+    })
+    .catch((error) => {
+      alert("Error loading component data. Please try again.");
+      console.error(error);
+    });
 }
+
+// Helper function (unchanged)
+function fillTable(tableBodyId, data) {
+  const tbody = document.getElementById(tableBodyId);
+  tbody.innerHTML = "";
+  data.forEach((row) => {
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+      <td>${row.user}</td>
+      <td>${row.date}</td>
+      <td>${row.determination}</td>
+      <td>${row.defect || "-"}</td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+window.searchComponent = searchComponent;
+
 
 
 
@@ -305,4 +326,60 @@ function generateMissingRows(missingData) {
 
   return rows;
 }
+
+
+function fetchWipSummary() {
+   
+  const productId = document.getElementById("wipProductInput").value.trim();
+  const tbody = document.getElementById("wipSummaryTableBody");
+  tbody.innerHTML = "";
+
+  if (!productId) {
+    alert("Please enter a product ID.");
+    return;
+  }
+
+  fetch(`https://tracewiseptf.onrender.com/api/reports/wip-summary/?product=${productId}`, {
+    method: "GET",
+    headers: {
+      "Content-Type": "application/json",
+      "Authorization": `Bearer ${token}`
+    },
+    credentials: "include" // Needed if you're using session auth
+  })
+    .then(response => {
+      if (!response.ok) throw new Error("Failed to fetch WIP summary");
+      return response.json();
+    })
+    .then(data => {
+      for (const [operation, count] of Object.entries(data)) {
+        const row = `<tr>
+          <td>${operation}</td>
+          <td>${count}</td>
+        </tr>`;
+        tbody.innerHTML += row;
+      }
+    })
+    .catch(error => {
+      console.error("Error fetching WIP summary:", error);
+      tbody.innerHTML = `<tr><td colspan="2" class="text-danger">Error loading data</td></tr>`;
+    });
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 

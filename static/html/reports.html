@@ -10,7 +10,7 @@
       <div class="nav flex-column nav-pills me-3" id="v-pills-tab" role="tablist" aria-orientation="vertical">
         <button class="nav-link active" id="trace-tab" data-bs-toggle="pill" data-bs-target="#trace" type="button" role="tab">🔎 Component Traceability</button>
         <button class="nav-link" id="operation-tab" data-bs-toggle="tab" data-bs-target="#operationReport" type="button" role="tab">📁 Filter by Operation</button>
-        <button class="nav-link" id="heat-tab" data-bs-toggle="pill" data-bs-target="#heat" type="button" role="tab">🔥 Heat Treatment Summary</button>
+        <button class="nav-link" id="heat-tab" data-bs-toggle="pill" data-bs-target="#heat" type="button" role="tab">📝 WIP Summary</button>
         <button class="nav-link" id="scrap-tab" data-bs-toggle="pill" data-bs-target="#scrap" type="button" role="tab">🛑 Rework & Scrap</button>
         <button class="nav-link" id="coc-report-tab" data-bs-toggle="pill" data-bs-target="#cocReport" type="button" role="tab">📄 CofC Report</button>
         <!-- Add more tabs as needed -->
@@ -39,7 +39,7 @@
                 <input id="heatInput" class="form-control" placeholder="Enter Heat Code" />
               </div>
               <div class="col-md-3">
-                <button class="btn btn-primary w-100" id="searchComponentBtn" >🔍 Search</button>
+                <button class="btn btn-primary w-100" id="searchComponentBtn">🔍 Search</button>
               </div>
             </div>
 
@@ -264,7 +264,7 @@
                   <input type="date" id="endDate" class="form-control" />
                 </div>
                 <div class="col-md-2">
-                  <button class="btn btn-primary w-100" id="filterByOperationBtn" >🔎 Filter</button>
+                  <button class="btn btn-primary w-100" id="filterByOperationBtn">🔎 Filter</button>
                 </div>
               </div>
 
@@ -289,9 +289,24 @@
 
         <!-- 🔥 Heat Treatment Summary -->
         <div class="tab-pane fade" id="heat" role="tabpanel" aria-labelledby="heat-tab">
-          <h4 class="mb-3">🔥 Heat Treatment Summary</h4>
+          <h4 class="mb-3">📝 WIP Summary</h4>
           <p>Overview of all heat treatment activities and trends.</p>
           <!-- Future charts, tables or filters -->
+          <input id="wipProductInput" class="form-control" placeholder="Enter Product ID" />
+          <button class="btn btn-primary mt-2" id="fetchWipSummaryBtn">🔄 Load WIP Summary</button>
+          
+          <div id="wipSummaryResult" class="table-responsive">
+            <table class="table table-bordered">
+              <thead class="table-light">
+                <tr>
+                  <th>Operation</th>
+                  <th>Pending Count</th>
+                </tr>
+              </thead>
+              <tbody id="wipSummaryTableBody"></tbody>
+            </table>
+          </div>
+          
         </div>
         
 
