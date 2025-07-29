@@ -12,6 +12,49 @@ from rest_framework import generics
 from api.stamping.models import Stamping
 
 
+# heat_treatment/views_certificate_update.py
+
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
+from rest_framework import status
+from .models import HeatTreatmentBatch, HTComponent
+from .serializers import HeatTreatmentBatchSerializer
+
+@api_view(['PATCH'])
+@permission_classes([IsAuthenticated])
+def update_batch_certificate(request, batch_id):
+    try:
+        batch = HeatTreatmentBatch.objects.get(pk=batch_id)
+    except HeatTreatmentBatch.DoesNotExist:
+        return Response({"detail": "Batch not found."}, status=status.HTTP_404_NOT_FOUND)
+
+    certificate = request.FILES.get("certificate")
+    if not certificate:
+        return Response({"detail": "Certificate file is required."}, status=status.HTTP_400_BAD_REQUEST)
+
+    batch.certificate = certificate
+
+    # Auto recalc hard_shell, soft_shell, quantity based on HTComponents
+    components = HTComponent.objects.filter(batch=batch)
+    # Example hardness threshold for hard_shell vs soft_shell:
+    HARDNESS_THRESHOLD = 50.0
+
+    hard_shell = components.filter(hardness_value__gte=HARDNESS_THRESHOLD).count()
+    soft_shell = components.filter(hardness_value__lt=HARDNESS_THRESHOLD).count()
+    quantity = components.count()
+
+    batch.hard_shell = hard_shell
+    batch.soft_shell = soft_shell
+    batch.quantity = quantity
+
+    batch.save()
+
+    serializer = HeatTreatmentBatchSerializer(batch)
+    return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+
 @api_view(['POST'])
 # @permission_classes([IsAuthenticated])
 def release_batch(request):

@@ -1,103 +1,130 @@
 export function init() {
-    document.getElementById("exportBtn").addEventListener("click", () => {
-        alert("📄 This will export the batch release report.");
+
+    document.getElementById("exportUTDataBtn").addEventListener("click", () => {
+        alert("📄 This will export the heat treatment report.");
     });
 
-    // Or: bind to form etc.
-
-    const releaseForm = document.getElementById("releaseForm");
-    const formMessage = document.getElementById("formMessage");
-
-    releaseForm.addEventListener("submit", function (e) {
-    e.preventDefault();
-
-    const formData = new FormData();
-    formData.append("product", document.getElementById("product").value);
-    formData.append("castCode", document.getElementById("castCode").value);
-    formData.append("heatCode", document.getElementById("heatCode").value);
-    formData.append("hardShell", document.getElementById("hardShell").value);
-    formData.append("softShell", document.getElementById("softShell").value);
-    formData.append("quantity", document.getElementById("quantity").value);
-    formData.append("certificate", document.getElementById("certificate").files[0]);
-
-    // Simulate successful submission
-    formMessage.textContent = "✅ Batch successfully released to the next operation.";
-    formMessage.style.color = "#28a745";
-
-    // To send to backend:
-    /*
-    fetch('/api/heat-treatment/release', {
-        method: 'POST',
-        body: formData,
-    }).then(res => res.json())
-        .then(data => {
-        formMessage.textContent = "✅ Batch released.";
-        }).catch(err => {
-        formMessage.textContent = "❌ Error submitting form.";
-        formMessage.style.color = "#e63946";
-        });
-    */
-    });
-    
-    // Load table data
+    // Initial render
     loadBatchTable();
 
-
-}
-
-const sampleBatches = [
-    {
-        id: "BATCH-2025-001",
-        product: "155mm HE Shell",
-        cast: "A12B",
-        heat: "H5567",
-        hard: 20,
-        soft: 5,
-        total: 25,
-        releasedBy: "Zanele M.",
-        date: "2025-06-29"
-    },
-    {
-        id: "BATCH-2025-002",
-        product: "155mm Smoke Shell",
-        cast: "B34D",
-        heat: "H5570",
-        hard: 18,
-        soft: 2,
-        total: 20,
-        releasedBy: "Thabo P.",
-        date: "2025-06-30"
+    document.querySelector("#batchTableBody").addEventListener("click", (e) => {
+    if (e.target.classList.contains("update-certificate-btn")) {
+        const tr = e.target.closest("tr");
+        const batchId = tr.getAttribute("data-batch-id");
+        document.getElementById("batchId").value = batchId;
+        document.getElementById("certificateModal").style.display = "block";
     }
-    ];
-
-function loadBatchTable() {
-    const tableBody = document.getElementById("batchTableBody");
-    tableBody.innerHTML = "";
-
-    sampleBatches.forEach(batch => {
-        console.log("sfgdfgdfg");
-        
-        const row = `
-        <tr>
-            <td>${batch.id}</td>
-            <td>${batch.product}</td>
-            <td>${batch.cast}</td>
-            <td>${batch.heat}</td>
-            <td>${batch.hard}</td>
-            <td>${batch.soft}</td>
-            <td>${batch.total}</td>
-            <td>${batch.releasedBy}</td>
-            <td>${batch.date}</td>
-        </tr>
-        `;
-        tableBody.innerHTML += row;
     });
+
+
+    document.getElementById("certificateForm").addEventListener("submit", async (e) => {
+    e.preventDefault();
+
+    const token = localStorage.getItem("authToken");
+    const batchId = document.getElementById("batchId").value;
+    const fileInput = document.getElementById("certificateFile");
+    if (!fileInput.files.length) {
+        alert("Please select a certificate file.");
+        return;
+    }
+
+    const formData = new FormData();
+    formData.append("certificate", fileInput.files[0]);
+
+    try {
+        const response = await fetch(`https://tracewiseptf.onrender.com/api/heat-treatment/release/${batchId}/`, {
+        method: "PATCH",
+        headers: {
+            "Authorization": `Bearer ${token}`
+        },
+        body: formData
+        });
+
+        if (!response.ok) {
+        const err = await response.json();
+        throw new Error(err.detail || "Failed to update certificate.");
+        }
+
+        alert("Certificate updated successfully.");
+        closeModal();
+        loadBatchTable(); // Refresh table data
+    } catch (err) {
+        alert("Error: " + err.message);
+    }
+    });
+
+
+
 }
 
 
 
 
 
+function closeModal() {
+  document.getElementById("certificateModal").style.display = "none";
+  document.getElementById("certificateForm").reset();
+}
+
+
+
+
+
+
+
+
+
+
+async function loadBatchTable() {
+    console.log("sddfgfd");
+    
+  const token = localStorage.getItem("authToken");
+  const tableBody = document.getElementById("batchTableBody");
+  tableBody.innerHTML = "";
+
+  if (!token) {
+    tableBody.innerHTML = "<tr><td colspan='10'>❌ Not logged in</td></tr>";
+    return;
+  }
+
+  try {
+    const res = await fetch("https://tracewiseptf.onrender.com/api/heat-treatment/list/", {
+      headers: {
+        "Authorization": `Bearer ${token}`
+      }
+    });
+    console.log("res: ", res)
+    if (!res.ok) throw new Error("Failed to load batches");
+
+    const batches = await res.json();
+
+    if (batches.length === 0) {
+      tableBody.innerHTML = "<tr><td colspan='9'>No batches found.</td></tr>";
+      return;
+    }
+
+    batches.forEach(batch => {
+      const row = `
+        <tr>
+          <td>${batch.id}</td>
+          <td>${batch.product}</td>
+          <td>${batch.cast_code}</td>
+          <td>${batch.heat_code}</td>
+          <td>${batch.hard_shell}</td>
+          <td>${batch.soft_shell}</td>
+          <td>${batch.quantity}</td>
+          <td>${batch.released_by || "—"}</td>
+          <td>${batch.released_at}</td>
+          <td><button class="btn btn-sm btn-outline-primary update-certificate-btn">Update Certificate</button></td>
+        </tr>
+      `;
+      tableBody.innerHTML += row;
+    });
+  } catch (err) {
+    console.error("Error loading batches:", err);
+    tableBody.innerHTML = "<tr><td colspan='9'>❌ Error loading data</td></tr>";
+  }
+}
 
 
 

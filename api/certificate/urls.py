@@ -3,7 +3,7 @@ from django.urls import path
 from .views import (
     CertificateOfConformanceViewSet,
     CofCComponentViewSet,
-    VerifyCofCComponents
+    VerifyCofCComponents,
 )
 
 # Register ViewSets with the router
@@ -14,7 +14,10 @@ router.register(r'components', CofCComponentViewSet, basename='components')
 # Combine router and function-based endpoints
 urlpatterns = router.urls + [
     path('verify/', VerifyCofCComponents.as_view(), name='verify-cofc-components'),
+    
 ]
+
+
 
 
 

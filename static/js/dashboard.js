@@ -13,6 +13,12 @@ console.log("dashboard 2");
 // });
 
 
+const token = localStorage.getItem("authToken");
+  if (!token) {
+    navigateTo("login");
+  }
+
+
 
 let currentUser = "Unknown";
 
@@ -42,7 +48,7 @@ async function fetchCurrentUser() {
 
 
 // Update navbar based on auth status
-function updateNavbar() {
+async function updateNavbar() {
   const navLinks = document.getElementById("navLinks");
   navLinks.innerHTML = "";
 
@@ -55,7 +61,7 @@ function updateNavbar() {
       <li><span style="color:#ccc">👤 ${username}</span></li>
       <li><a href="#" onclick="signOut()">Sign Out</a></li>
       
-      <li><a href="#" >Admin</a></li>
+      <li><a href="#" onclick="navigateTo('admin')">Admin</a></li>
       <li><a href="#">Contact</a></li>
     `;
   } else {
@@ -114,18 +120,14 @@ document.addEventListener("DOMContentLoaded", async function () {
     console.log("User Info:", user);
   } catch (err) {
     console.error("Dashboard error:", err);
-    // If token is expired or invalid, log out the user
-    // localStorage.removeItem("authToken");
-    // window.location.href = "login.html";
     navigateTo('login')
   }
 });
 
 
 
-// Call on load
-window.addEventListener("load", updateNavbar);
 
 window.onload = async function () {
   await fetchCurrentUser();
+  await updateNavbar();
 };
