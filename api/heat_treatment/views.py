@@ -21,6 +21,25 @@ from rest_framework import status
 from .models import HeatTreatmentBatch, HTComponent
 from .serializers import HeatTreatmentBatchSerializer
 
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def lookup_product_by_cast_and_heat(request):
+    cast_code = request.GET.get("cast_code")
+    heat_code = request.GET.get("heat_code")
+
+    if not cast_code or not heat_code:
+        return Response({"detail": "Both cast_code and heat_code are required."}, status=status.HTTP_400_BAD_REQUEST)
+
+    try:
+        component = HTComponent.objects.filter(cast_code=cast_code, heat_code=heat_code).first()
+        if component:
+            return Response({"product": component.product})
+        return Response({"product": None})
+    except Exception as e:
+        return Response({"detail": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
 @api_view(['PATCH'])
 @permission_classes([IsAuthenticated])
 def update_batch_certificate(request, batch_id):

@@ -29,11 +29,12 @@ export function init() {
     const castCode = document.getElementById("castCode").value;
     const heatCode = document.getElementById("heatCode").value;
     const Product = document.getElementById("Product").value;
+    const operation_type = "UT"
     const sentence = document.getElementById("sentence").value;
     const comment = document.getElementById("comment").value;
     const date = new Date().toLocaleDateString();
 
-    utRecords.unshift({ serial, castCode, heatCode, Product, sentence, comment, date });
+    utRecords.unshift({ serial, castCode, heatCode, Product, operation_type, sentence, comment, date });
 
     renderUTTable();
 
