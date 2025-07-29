@@ -32,9 +32,11 @@ def lookup_product_by_cast_and_heat(request):
         return Response({"detail": "Both cast_code and heat_code are required."}, status=status.HTTP_400_BAD_REQUEST)
 
     try:
-        component = HTComponent.objects.filter(cast_code=cast_code, heat_code=heat_code).first()
-        if component:
-            return Response({"product": component.product})
+        component = HTComponent.objects.filter(cast_code=cast_code, heat_code=heat_code).select_related('batch__product').first()
+
+        if component and component.batch and component.batch.product:
+            product_name = str(component.batch.product)  # or .name, .title, etc.
+            return Response({"product": product_name})
         return Response({"product": None})
     except Exception as e:
         return Response({"detail": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

@@ -11,13 +11,16 @@ export function init() {
         closeFormPanel()
     });
 
+    document.getElementById("castCode").addEventListener("input", triggerProductLookup);
+    document.getElementById("heatCode").addEventListener("input", triggerProductLookup);
+
 
     
 
 
     // const utRecords = []; // Your table data
     const utTableBody = document.getElementById("utTableBody");
-    document.getElementById("Product").value = "155mm HE";
+    document.getElementById("Product").value = "...";
     fetchUltrasonicRecords();
 
     
@@ -160,7 +163,6 @@ window.deleteUTRecord = deleteUTRecord;
 const utRecords = [];
 
 async function fetchUltrasonicRecords() {
-    console.log("fgdfgdfgfggggg");
     
   const token = localStorage.getItem("authToken");
 
@@ -246,17 +248,19 @@ function renderUTTable() {
 }
 
 
-document.getElementById("castCode").addEventListener("input", triggerProductLookup);
-document.getElementById("heatCode").addEventListener("input", triggerProductLookup);
 
-function triggerProductLookup() {
-  const castCode = document.getElementById("castCode").value.trim();
-  const heatCode = document.getElementById("heatCode").value.trim();
 
-  if (castCode && heatCode) {
-    fetchProductFromHeatTreatment(castCode, heatCode);
+export function triggerProductLookup() {
+    console.log("sdfdg");
+    
+  const cast_code = document.getElementById("castCode").value.trim();
+  const heat_code = document.getElementById("heatCode").value.trim();
+
+  if (cast_code && heatCode) {
+    fetchProductFromHeatTreatment(cast_code, heat_code);
   }
 }
+window.triggerProductLookup = triggerProductLookup;
 
 
 async function fetchProductFromHeatTreatment(castCode, heatCode) {
