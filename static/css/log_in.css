@@ -107,3 +107,8 @@ button:hover {
   margin-top: 1rem;
   text-align: center;
 }
+
+
+body {
+  padding-top: 70px; /* Adjust this value to match your navbar height */
+}

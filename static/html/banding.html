@@ -1,5 +1,8 @@
 <!-- CSS -->
-<link rel="stylesheet" href="/static/css/banding.css" />
+<link rel="stylesheet" href="/static/css/banding.css?v=2" />
+
+<div id="main-content">
+  <!-- everything here -->
 
 <!-- Add Button -->
 <div class="row mb-3">
@@ -29,17 +32,17 @@
 
         <div class="mb-3">
             <label for="castCode" class="form-label">Cast Code</label>
-            <input type="text" class="form-control" id="castCode" required />
+            <input type="text" class="form-control" id="cast_code" required />
         </div>
 
         <div class="mb-3">
             <label for="heatCode" class="form-label">Heat Code</label>
-            <input type="text" class="form-control" id="heatCode" required />
+            <input type="text" class="form-control" id="heat_code" required />
         </div>
 
         <div class="mb-3">
             <label for="Product" class="form-label">Product</label>
-            <input type="text" class="form-control" id="Product" required />
+            <input type="text" class="form-control" id="Product" />
         </div>
       
       <div class="mb-3">
@@ -66,7 +69,7 @@
         <button type="submit" class="btn btn-primary">📥 Submit Entry</button>
       </div>
 
-      <div id="cncMessage" class="text-center mt-3 fw-bold"></div>
+      <div id="utMessage" class="text-center mt-3 fw-bold"></div>
     </form>
 
     
@@ -101,4 +104,7 @@
       </table>
     </div>
   </div>
+</div>
+
+
 </div>

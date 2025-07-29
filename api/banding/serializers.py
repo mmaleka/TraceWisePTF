@@ -4,6 +4,7 @@ from rest_framework import serializers
 from .models import Banding
 
 class BandingSerializer(serializers.ModelSerializer):
+    recorded_by = serializers.StringRelatedField(read_only=True)
     product_name = serializers.SerializerMethodField()
     product_id = serializers.SerializerMethodField()
 

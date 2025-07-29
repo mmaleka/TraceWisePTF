@@ -187,7 +187,7 @@ function renderUTTable() {
   if (utRecords.length === 0) {
       utTableBody.innerHTML = "<tr><td colspan='9'>No batches found.</td></tr>";
       return;
-    }
+  }
 
   utRecords.forEach((record, index) => {
     utTableBody.innerHTML += `
