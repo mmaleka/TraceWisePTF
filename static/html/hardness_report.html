@@ -1,0 +1,108 @@
+<!-- CSS -->
+<link rel="stylesheet" href="/static/css/hardness_report.css" />
+<div class="dashboard-container">
+  <h2 class="text-center mb-4">🧪 Hardness Data</h2>
+
+  <!-- Top Buttons -->
+  <div class="row mb-3">
+    <div class="col-12 text-end">
+        <button class="btn btn-success" id="openFormPanelBtn" >➕ Add Component</button>
+        <button class="btn btn-primary me-2" id="saveChangesBtn" >✅ Save Changes</button>
+        <button class="btn btn-outline-secondary" id="downloadExcelBtn" >📤 Export Excel</button>
+    </div>
+  </div>
+
+  <!-- Slide-in Hardness Form -->
+  <div id="utFormPanel" class="ut-slide-panel">
+    <div class="panel-content p-4">
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <h5 class="text-primary m-0">➕ New Hardness Entry</h5>
+        <button class="btn btn-sm btn-outline-danger" id="closeFormPanelBtn" >✖</button>
+      </div>
+
+      <form id="utForm">
+        <!-- Product Dropdown -->
+        <div class="mb-3">
+          <label for="productSelect" class="form-label">Product</label>
+          <select class="form-select" id="productSelect" required>
+            <option value="">-- Select Product --</option>
+          </select>
+        </div>
+
+        <!-- Serial -->
+        <div class="mb-3">
+          <label for="serialNumber" class="form-label">Shell Serial Number</label>
+          <input type="text" class="form-control" id="serialNumber" required />
+        </div>
+
+        <!-- Cast Code -->
+        <div class="mb-3">
+          <label for="castCode" class="form-label">Cast Code</label>
+          <input type="text" class="form-control" id="castCode" required />
+        </div>
+
+        <!-- Heat Code -->
+        <div class="mb-3">
+          <label for="heatCode" class="form-label">Heat Code</label>
+          <input type="text" class="form-control" id="heatCode" required />
+        </div>
+
+        <!-- Hardness Value -->
+        <div class="mb-3">
+          <label for="hardnessValue" class="form-label">Hardness Value</label>
+          <input type="number" class="form-control" id="hardnessValue" step="0.1" required />
+        </div>
+
+        <div class="d-grid">
+          <button type="submit" class="btn btn-primary">📥 Submit Entry</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Filters -->
+  <div class="row mb-3">
+    <div class="col-6">
+      <input
+        type="text"
+        id="filterCastCode"
+        placeholder="Filter by Cast Code"
+        class="form-control"
+      />
+    </div>
+    <div class="col-6">
+      <input
+        type="text"
+        id="filterHeatCode"
+        placeholder="Filter by Heat Code"
+        class="form-control"
+      />
+    </div>
+  </div>
+
+  <!-- Hardness Data Table -->
+  <div class="row mt-2">
+    <div class="col-12">
+      <h4 class="text-center text-secondary mb-3">🧪 Hardness Measurements</h4>
+      <div class="table-responsive">
+        <table class="table table-bordered table-striped align-middle text-center">
+          <thead class="table-primary">
+            <tr>
+              <th>Product</th>
+              <th>Serial</th>
+              <th>Cast Code</th>
+              <th>Heat Code</th>
+              <th>Hardness</th>
+              <th>User</th>
+              <th>Date</th>
+              <th>Delete</th>
+            </tr>
+          </thead>
+          <tbody id="utTableBody">
+            <!-- JavaScript will populate editable rows here -->
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>

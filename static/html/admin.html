@@ -1,0 +1,105 @@
+<!-- CSS -->
+<link rel="stylesheet" href="/static/css/admin.css" />
+<div class="admin-container">
+  <!-- Side Nav -->
+  <nav class="admin-sidebar">
+    <h4 class="text-white text-center">Admin Panel</h4>
+    <ul>
+      <li onclick="showSection('productsSection')">📦 Products</li>
+      <li onclick="showSection('usersSection')">👤 Users</li>
+      <li onclick="showSection('resetSection')">🔒 Reset Password</li>
+      <li onclick="showSection('cncSection')">⚙️ CNC Operations</li>
+    </ul>
+  </nav>
+
+  <!-- Main Content -->
+  <main class="admin-main">
+    <!-- PRODUCTS SECTION -->
+    <div id="productsSection" class="admin-section">
+      <h3 class="text-success mb-4">➕ Add New Product</h3>
+      <form id="productForm" class="mb-4">
+        
+        <div class="mb-3">
+          <label for="productName" class="form-label">product Name</label>
+          <input type="text" class="form-control" id="productName" required />
+        </div>
+        <button type="submit" class="btn btn-success">💾 Add Product</button>
+      </form>
+
+      <h5>📦 Existing Products</h5>
+      <table class="table table-striped">
+        <thead><tr><th>Number</th><th>Description</th></tr></thead>
+        <tbody id="productTableBody"></tbody>
+      </table>
+    </div>
+
+    <!-- USERS SECTION -->
+    <div id="usersSection" class="admin-section">
+      <h3 class="text-success mb-4">👤 Add New User</h3>
+      <form id="userForm" class="mb-4">
+        <div class="mb-3">
+          <label for="username" class="form-label">Username</label>
+          <input type="text" class="form-control" id="username" required />
+        </div>
+        <div class="mb-3">
+          <label for="password" class="form-label">Password</label>
+          <input type="password" class="form-control" id="password" required />
+        </div>
+        <div class="mb-3">
+          <label for="userType" class="form-label">User Type</label>
+          <select id="userType" class="form-select" required>
+            <option value="">-- Select Role --</option>
+            <option value="Production">Production</option>
+            <option value="Management">Management</option>
+            <option value="Quality">Quality</option>
+          </select>
+        </div>
+        <button type="submit" class="btn btn-success">➕ Add User</button>
+      </form>
+
+      <h5>👥 Existing Users</h5>
+      <table class="table table-striped">
+        <thead><tr><th>Username</th><th>Type</th></tr></thead>
+        <tbody id="userTableBody"></tbody>
+      </table>
+    </div>
+
+    <!-- RESET PASSWORD SECTION -->
+    <div id="resetSection" class="admin-section">
+      <h3 class="text-success mb-4">🔒 Reset User Password</h3>
+      <form id="resetForm">
+        <div class="mb-3">
+          <label for="resetUsername" class="form-label">Username</label>
+          <input type="text" class="form-control" id="resetUsername" required />
+        </div>
+        <div class="mb-3">
+          <label for="newPassword" class="form-label">New Password</label>
+          <input type="password" class="form-control" id="newPassword" required />
+        </div>
+        <button type="submit" class="btn btn-warning">🔄 Reset Password</button>
+      </form>
+    </div>
+
+    <!-- CNC SECTION -->
+    <div id="cncSection" class="admin-section">
+      <h3 class="text-success mb-4">⚙️ Add CNC Operation</h3>
+      <form id="cncForm" class="mb-4">
+        <div class="mb-3">
+          <label for="cncName" class="form-label">Operation Name</label>
+          <input type="text" class="form-control" id="cncName" required />
+        </div>
+        <div class="mb-3">
+          <label for="operationNumber" class="form-label">Operation Number</label>
+          <input type="number" class="form-control" id="operationNumber" required />
+        </div>
+        <button type="submit" class="btn btn-success">➕ Add Operation</button>
+      </form>
+
+      <h5>🛠️ Existing Operations</h5>
+      <table class="table table-striped">
+        <thead><tr><th>Name</th><th>Number</th></tr></thead>
+        <tbody id="cncTableBody"></tbody>
+      </table>
+    </div>
+  </main>
+</div>

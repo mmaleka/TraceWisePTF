@@ -22,6 +22,8 @@ export function init() {
 
     const token = localStorage.getItem("authToken");
     const batchId = document.getElementById("batchId").value;
+    console.log("batchId: ", batchId);
+    
     const fileInput = document.getElementById("certificateFile");
     if (!fileInput.files.length) {
         alert("Please select a certificate file.");
@@ -61,10 +63,11 @@ export function init() {
 
 
 
-function closeModal() {
+export function closeModal() {
   document.getElementById("certificateModal").style.display = "none";
   document.getElementById("certificateForm").reset();
 }
+window.closeModal = closeModal;
 
 
 
@@ -76,7 +79,7 @@ function closeModal() {
 
 
 async function loadBatchTable() {
-    console.log("sddfgfd");
+
     
   const token = localStorage.getItem("authToken");
   const tableBody = document.getElementById("batchTableBody");
@@ -99,13 +102,13 @@ async function loadBatchTable() {
     const batches = await res.json();
 
     if (batches.length === 0) {
-      tableBody.innerHTML = "<tr><td colspan='9'>No batches found.</td></tr>";
+      tableBody.innerHTML = "<tr><td colspan='10'>No batches found.</td></tr>";
       return;
     }
 
     batches.forEach(batch => {
       const row = `
-        <tr>
+        <tr data-batch-id="${batch.id}">
           <td>${batch.id}</td>
           <td>${batch.product}</td>
           <td>${batch.cast_code}</td>
@@ -118,6 +121,7 @@ async function loadBatchTable() {
           <td><button class="btn btn-sm btn-outline-primary update-certificate-btn">Update Certificate</button></td>
         </tr>
       `;
+
       tableBody.innerHTML += row;
     });
   } catch (err) {

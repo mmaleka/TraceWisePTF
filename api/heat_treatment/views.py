@@ -35,17 +35,18 @@ def update_batch_certificate(request, batch_id):
 
     batch.certificate = certificate
 
-    # Auto recalc hard_shell, soft_shell, quantity based on HTComponents
-    components = HTComponent.objects.filter(batch=batch)
-    # Example hardness threshold for hard_shell vs soft_shell:
-    HARDNESS_THRESHOLD = 50.0
 
-    hard_shell = components.filter(hardness_value__gte=HARDNESS_THRESHOLD).count()
-    soft_shell = components.filter(hardness_value__lt=HARDNESS_THRESHOLD).count()
-    quantity = components.count()
+    # Component with the highest hardness value
+    hardest_component = components.order_by("-hardness_value").first()
 
-    batch.hard_shell = hard_shell
-    batch.soft_shell = soft_shell
+    # Component with the lowest hardness value
+    softest_component = components.order_by("hardness_value").first()
+
+    # Assign the serial numbers
+    batch.hard_shell = hardest_component.serial
+    batch.soft_shell = softest_component.serial
+    print("../ ", hardest_component, hardest_component.serial)
+
     batch.quantity = quantity
 
     batch.save()
