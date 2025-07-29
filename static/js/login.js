@@ -1,4 +1,4 @@
-let currentUser = "Unknown";
+// let currentUser = "Unknown";
 
 // Fetch current user info
 async function fetchCurrentUser() {
@@ -80,7 +80,7 @@ document.getElementById("loginForm").addEventListener("submit", async function (
       localStorage.setItem("username", user.username);
 
       updateNavbar(); // ✅ Refresh navbar after login
-      window.location.hash = "#admin"; // optional: redirect after login
+      navigateTo('dashboard')
     } else {
       errorDiv.textContent =
         data.non_field_errors?.[0] || data.detail || "❌ Login failed. Please try again.";
@@ -125,7 +125,7 @@ function signOut() {
   localStorage.removeItem("username");
   updateNavbar();
   alert("✅ You have been signed out");
-  window.location.hash = "#login";
+  navigateTo('login')
 }
 
 // Call on load
