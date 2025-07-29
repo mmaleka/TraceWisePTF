@@ -10,6 +10,6 @@ from .views import OperationFilterReport, ComponentTraceabilityReport
 
 urlpatterns = [
     path("wip-summary/", WIPSummaryAPIView.as_view(), name="wip-summary"),
-    path("reports/filter-by-operation/", OperationFilterReport.as_view(), name="filter-by-operation"),
-    path("reports/traceability/", ComponentTraceabilityReport.as_view(), name="component-traceability"),
+    path("filter-by-operation/", OperationFilterReport.as_view(), name="filter-by-operation"),
+    path("traceability/", ComponentTraceabilityReport.as_view(), name="component-traceability"),
 ]
