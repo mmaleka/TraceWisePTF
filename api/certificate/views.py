@@ -48,7 +48,6 @@ from rest_framework.generics import ListAPIView
 from django.db.models import Q
 from api.final_inspection.serializers import FinalInspectionRecordSerializer
 
-
 class VerifyCofCComponents(APIView):
     permission_classes = [IsAuthenticated]
 
@@ -83,33 +82,40 @@ class VerifyCofCComponents(APIView):
             ).first()
 
             if not ht_component:
-                missing_heat_treatment.append(serial)
+                # If heat treatment itself is missing, all downstream steps are considered missing
+                missing_heat_treatment.append([serial, cast_code, heat_code])
+                missing_ut.append([serial, cast_code, heat_code])
+                missing_mpi.append([serial, cast_code, heat_code])
+                missing_final_inspection.append([serial, cast_code, heat_code])
                 continue
 
             batch = ht_component.batch
 
+            # UT check
             if not UltrasonicTest.objects.filter(heat_treatment=batch, operation_type="UT").exists():
                 missing_ut.append([serial, cast_code, heat_code])
 
+            # MPI check
             if not UltrasonicTest.objects.filter(heat_treatment=batch, operation_type="MPI").exists():
                 missing_mpi.append([serial, cast_code, heat_code])
 
+            # Final Inspection check
             if not FinalInspectionRecord.objects.filter(heat_treatment=batch).exists():
                 missing_final_inspection.append([serial, cast_code, heat_code])
 
-
-
+        # Helper to summarize missing items
         def summarize(missing_list):
             return "All Complete" if not missing_list else " , ".join(
-                ["-".join(map(str, item)) if isinstance(item, (list, tuple)) else str(item) for item in missing_list]
+                ["-".join(map(str, item)) for item in missing_list]
             )
 
-
-        # Update and save status on the certificate
+        # Set summary fields
         certificate.heat_treatment = summarize(missing_heat_treatment)
         certificate.ut = summarize(missing_ut)
         certificate.mpi = summarize(missing_mpi)
         certificate.final_inspection = summarize(missing_final_inspection)
+
+        # Completion status
         certificate.complete = all([
             not missing_heat_treatment,
             not missing_ut,
@@ -118,6 +124,7 @@ class VerifyCofCComponents(APIView):
         ])
         certificate.save()
 
+        # Checklist for frontend
         checklist = [
             "❌ Heat Treatment: Missing items" if missing_heat_treatment else "✔ Heat Treatment: All Complete",
             "❌ UT: Missing items" if missing_ut else "✔ UT: All Complete",
@@ -136,6 +143,8 @@ class VerifyCofCComponents(APIView):
             "complete": certificate.complete,
             "quantity": certificate.quantity,
         }, status=status.HTTP_200_OK)
+
+
 
 
 class CertificateOfConformanceViewSet(viewsets.ModelViewSet):

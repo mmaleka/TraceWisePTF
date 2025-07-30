@@ -1006,6 +1006,7 @@ async function verifyCofC() {
     }
 
     const data = await response.json();
+    console.log("data: ", data)
     const missing = data.missing;
     updateVerificationSummaryTable(missing);
 
