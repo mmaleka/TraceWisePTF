@@ -22,6 +22,9 @@ class CNCMachiningSerializer(serializers.ModelSerializer):
             return obj.heat_treatment.product.id
         return None
 
+    def get_recorded_by_username(self, obj):
+        return obj.recorded_by.username if obj.recorded_by else None
+
 
 
 class CNCOperationSerializer(serializers.ModelSerializer):

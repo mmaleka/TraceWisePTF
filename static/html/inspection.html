@@ -5,7 +5,7 @@
 <!-- Add Button -->
 <div class="row mb-3">
   <div class="col-12 text-end">
-    <button class="btn btn-success" id="openFormPanelBtn" >➕ Add Component</button>
+    <button class="btn btn-success" id="openFormPanelBtn" disabled>➕ Add Component</button>
     <button class="btn btn-primary me-2" id="saveChangesBtn" >✅ Save Changes</button>
     <button class="btn btn-outline-secondary" id="downloadExcelBtn" >📤 Export Excel</button>
   </div>
@@ -14,6 +14,7 @@
 
 <!-- Slide-in UT Form (initially hidden) -->
 <div id="utFormPanel" class="ut-slide-panel">
+  
   <div class="panel-content p-4">
     <div class="d-flex justify-content-between align-items-center mb-3">
       <h5 class="text-primary m-0">✅ Final Inspection Entry</h5>
@@ -49,7 +50,7 @@
         <button type="submit" class="btn btn-primary">📥 Submit Entry</button>
       </div>
 
-      <div id="cncMessage" class="text-center mt-3 fw-bold"></div>
+      <div id="utMessage" class="text-center mt-3 fw-bold"></div>
     </form>
   </div>
 </div>
@@ -65,11 +66,8 @@
         
         <div class="d-flex justify-content-center align-items-center gap-2">
           <label for="productToggle" class="form-label m-0">Select Product:</label>
-          <select class="form-select text-center text-secondary w-auto" id="productToggle" onchange="switchProduct()">
-            <option value="M0121 Body">M0121 Body</option>
-            <option value="M2003 Body">M2003 Body</option>
-            <option value="M2003 Ogive">M2003 Ogive</option>
-            <option value="Pump">Pump</option>
+          <select class="form-select" id="productSelect" required>
+            <option value="">-- Select Product --</option>
           </select>
         </div>
 
@@ -80,9 +78,19 @@
 
 
 
+<!-- UT Data Table -->
+<div class="row mt-5">
+  <div class="col-12">
+    
+    <div class="table-responsive">
+    
+    </div>
+  </div>
+</div>
+
+
 
 <div id="spreadsheet-container">
   <div id="spreadsheet"></div>
 </div>
-
 

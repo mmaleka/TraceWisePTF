@@ -61,8 +61,6 @@ class FinalInspectionRecordViewSet(viewsets.ModelViewSet):
 
         return queryset
 
-    # def get_queryset(self):
-    #     return FinalInspectionRecord.objects.all().order_by("-date")
 
     def perform_create(self, serializer):
         serializer.save(inspector=self.request.user)
