@@ -6,64 +6,969 @@ export function init() {
     document.getElementById("printCofCBtn").addEventListener("click", () => {
         printCofC()
     });
+  
+    fetchCurrentUser();
+    cofcId = getCofcIdFromURL();
+    console.log("📄 CofC ID:", cofcId);
 
-    // Initial render
-    // renderTable();
+  //   if (!cofcId) {
+  //     alert("❌ No CofC ID found in the URL.");
+  //     return;
+  //   }
 
+    // Optional: load existing CofC details
+    loadCofcDetails(); //← create this if needed
+    loadInspectionData();
+    loadPalletComponents();
 
 
 }
 
-const inspectionData = [
-  { shell: "SN001", cast: "CC100", heat: "HC200" },
-  { shell: "SN002", cast: "CC101", heat: "HC201" },
-  { shell: "SN003", cast: "CC102", heat: "HC202" },
-];
-
+let currentUser = "Unknown";
+let cofcId = null; // Make cofcId global
 let isCofCVerified = false;
-
 const { jsPDF } = window.jspdf;
+
+async function loadCofcDetails() {
+  const token = localStorage.getItem("authToken");
+  cofcId = 1 // getCofcIdFromURL(); // Ensure cofcId is globally set
+  if (!cofcId) return;
+
+  try {
+    const response = await fetch(`https://tracewiseptf.onrender.com/api/certificate/cofc/${cofcId}/`, {
+      headers: { "Authorization": `Bearer ${token}` }
+    });
+
+    if (response.ok) {
+      const data = await response.json();
+      console.log("data: ", data)
+      document.getElementById("cocNumber").textContent = data.coc_number;
+      document.getElementById("productName").textContent = data.product; // Or fetch product name from your DB/API
+      document.getElementById("userName").textContent = data.user;
+    } else {
+      console.error("Failed to load CofC details.");
+    }
+  } catch (err) {
+    console.error("Network error:", err);
+  }
+}
+
+
+function getCofcIdFromURL() {
+  const params = new URLSearchParams(window.location.search);
+  return params.get("id");
+}
+
+async function fetchCurrentUser() {
+  const token = localStorage.getItem("authToken");
+  if (!token) return;
+
+  try {
+    const response = await fetch("https://tracewiseptf.onrender.com/api/whoami/", {
+      headers: {
+        "Authorization": `Bearer ${token}`,
+        "Content-Type": "application/json"
+      }
+    });
+
+    if (response.ok) {
+      const user = await response.json();
+      currentUser = user.username;
+      console.log("✅ Logged in as:", currentUser);
+    } else {
+      console.warn("❌ Failed to fetch user info");
+    }
+  } catch (err) {
+    console.error("Error fetching current user:", err);
+  }
+}
+
+
+
 
 const inspectionTableBody = document.querySelector("#inspectionTable tbody");
 
-const palletTable = document.querySelector("#palletTable tbody");
+async function loadInspectionData() {
+  console.log("loadInspectionData")
+  try {
+    const response = await fetch("https://tracewiseptf.onrender.com/api/final_inspection/available/", {
+      headers: {
+        "Authorization": `Bearer ${localStorage.getItem("authToken")}`,
+        "Content-Type": "application/json"
+      }
+    });
 
-inspectionData.forEach((item, index) => {
+    if (!response.ok) {
+      throw new Error("Failed to fetch inspection data");
+    }
+
+    const inspectionData = await response.json();
+
+    inspectionData.forEach((item) => {
+      const row = document.createElement("tr");
+      row.innerHTML = `<td>${item.serial}</td><td>${item.cast_code}</td><td>${item.heat_code}</td>`;
+      row.style.cursor = "pointer";
+      row.addEventListener("click", () => moveToPallet(row));
+      inspectionTableBody.appendChild(row);
+    });
+
+    console.log("✅ Inspection data loaded:", inspectionData);
+  } catch (error) {
+    console.error("❌ Error loading inspection data:", error);
+  }
+}
+
+
+function addComponentToPallet(component) {
   const row = document.createElement("tr");
-  row.innerHTML = `<td>${item.shell}</td><td>${item.cast}</td><td>${item.heat}</td>`;
-  row.style.cursor = "pointer";
-  row.addEventListener("click", () => moveToPallet(row));
-  inspectionTableBody.appendChild(row);
-});
+  row.innerHTML = `
+    <td>${component.serial}</td>
+    <td>${component.cast_code}</td>
+    <td>${component.heat_code}</td>
+  `;
+
+  // Add remove button
+  const removeTd = document.createElement("td");
+  removeTd.innerHTML = `<button class="btn btn-danger btn-sm remove-btn">Remove</button>`;
+  removeTd.querySelector("button").addEventListener("click", (e) => {
+    e.stopPropagation();
+    removeFromPallet(row);
+  });
+  row.appendChild(removeTd);
+
+  // Store component ID for deletion
+  row.dataset.componentId = component.id;
+
+  palletTable.appendChild(row);
+}
+
+
+async function loadPalletComponents() {
+  let cocId = document.getElementById("cocNumber").dataset.id;
+  cocId=1
+  if (!cocId) return;
+
+  try {
+    const response = await fetch(`https://tracewiseptf.onrender.com/api/certificate/components/?certificate=${cocId}`, {
+      headers: {
+        "Authorization": `Bearer ${localStorage.getItem("authToken")}`,
+        "Content-Type": "application/json"
+      }
+    });
+
+    if (!response.ok) {
+      throw new Error("Failed to fetch pallet components");
+    }
+
+    const components = await response.json();
+    components.forEach(component => addComponentToPallet(component));
+    console.log("✅ Pallet loaded:", components);
+  } catch (err) {
+    console.error("❌ Error loading pallet:", err);
+  }
+}
 
 
 
-function moveToPallet(row) {
-  // Add remove button cell
+
+
+
+
+
+async function moveToPallet(row) {
+  console.log("adding to Pallet")
+  // Add remove button if not already present
   if (!row.querySelector(".remove-btn")) {
     const removeTd = document.createElement("td");
     removeTd.innerHTML = `<button class="btn btn-danger btn-sm remove-btn">Remove</button>`;
     removeTd.querySelector("button").addEventListener("click", (e) => {
-      e.stopPropagation();  // Prevent row click triggering
+      e.stopPropagation();
       removeFromPallet(row);
     });
     row.appendChild(removeTd);
   }
 
-  // Move row to pallet table
-  palletTable.appendChild(row);
+  // Extract values from the clicked row
+  const cells = row.querySelectorAll("td");
+  const shell = cells[0].innerText.trim();
+  const cast = cells[1].innerText.trim();
+  const heat = cells[2].innerText.trim();
+
+  // Get CofC ID (assumes it's stored in a hidden span or data attribute)
+  let cocId = document.getElementById("cocNumber").dataset.id;  // Example: <span id="cocNumber" data-id="1">0001</span>
+  cocId=1
+  if (!cocId) {
+    console.warn("❌ CofC ID not found. Cannot save component.");
+    return;
+  }
+
+  // Prepare component payload
+  const componentData = {
+    certificate: cocId,
+    serial: shell,
+    cast_code: cast,
+    heat_code: heat
+  };
+
+  // Send POST request
+  try {
+    const token = localStorage.getItem("authToken");
+
+    const response = await fetch("https://tracewiseptf.onrender.com/api/certificate/components/", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${token}`
+      },
+      body: JSON.stringify(componentData)
+    });
+
+    if (response.ok) {
+      const savedComponent = await response.json();  // <== ADD THIS
+
+      console.log("✅ Component saved:", savedComponent);
+      // Store the backend ID on the row
+      row.dataset.componentId = savedComponent.id;
+      
+      palletTable.appendChild(row);  // Move row after save
+    } else {
+      const error = await response.json();
+      console.error("❌ Error saving component:", error);
+      alert("Failed to save component. Check console for details.");
+    }
+  } catch (err) {
+    console.error("⚠️ Network or server error:", err);
+    alert("Network error while saving component.");
+  }
 }
 
 
-function removeFromPallet(row) {
-  // Remove the last cell (remove button)
+
+async function removeFromPallet(row) {
+  const componentId = row.dataset.componentId;
+  console.log("componentId: ", componentId)
+
+  // If the row has a backend ID, delete from backend
+  if (componentId) {
+    const confirmed = confirm("Are you sure you want to remove this component?");
+    if (!confirmed) return;
+
+    try {
+      const response = await fetch(`https://tracewiseptf.onrender.com/api/certificate/components/${componentId}/`, {
+        method: "DELETE",
+        headers: {
+          "Authorization": `Bearer ${localStorage.getItem("authToken")}`,
+          "Content-Type": "application/json",
+        },
+      });
+
+      if (!response.ok) {
+        const error = await response.text();
+        console.error("❌ Failed to delete component:", error);
+        alert("Failed to delete component from server.");
+        return;
+      }
+
+      console.log(`✅ Component ${componentId} deleted from backend`);
+    } catch (err) {
+      console.error("⚠️ Network error during deletion:", err);
+      alert("Error deleting component.");
+      return;
+    }
+  }
+
+  // Remove the delete button (last cell)
   const lastCell = row.lastElementChild;
-  if (lastCell && lastCell.classList.contains("remove-btn") || lastCell.querySelector(".remove-btn")) {
+  if (lastCell && (lastCell.classList.contains("remove-btn") || lastCell.querySelector(".remove-btn"))) {
     row.removeChild(lastCell);
   }
-  // Move row back to inspection table
+
+  // Remove backend reference
+  delete row.dataset.componentId;
+
+  // Move the row back to inspection table
   inspectionTableBody.appendChild(row);
 }
+
+
+
+
+
+
+// function moveToPallet(row) {
+//   // Add remove button cell
+//   if (!row.querySelector(".remove-btn")) {
+//     const removeTd = document.createElement("td");
+//     removeTd.innerHTML = `<button class="btn btn-danger btn-sm remove-btn">Remove</button>`;
+//     removeTd.querySelector("button").addEventListener("click", (e) => {
+//       e.stopPropagation();  // Prevent row click triggering
+//       removeFromPallet(row);
+//     });
+//     row.appendChild(removeTd);
+//   }
+
+//   // Move row to pallet table
+//   palletTable.appendChild(row);
+// }
+
+
+// function removeFromPallet(row) {
+//   // Remove the last cell (remove button)
+//   const lastCell = row.lastElementChild;
+//   if (lastCell && lastCell.classList.contains("remove-btn") || lastCell.querySelector(".remove-btn")) {
+//     row.removeChild(lastCell);
+//   }
+//   // Move row back to inspection table
+//   inspectionTableBody.appendChild(row);
+// }
+
+
+
+
+// Global records array
+
+
+
+
+// function verifyCofC() {
+//   const palletRows = palletTable.querySelectorAll("tr");
+//   const palletData = Array.from(palletRows).map(row => {
+//     const cells = row.querySelectorAll("td");
+//     return {
+//       shell: cells[0].innerText,
+//       cast: cells[1].innerText,
+//       heat: cells[2].innerText
+//     };
+//   });
+//   console.log("✅ CofC Verified with Pallet Data:", palletData);
+
+//   // Example incoming JSON verification status:
+//   const verificationStatus = {
+//     missing: {
+//       heat_treatment: ["SH-001-AA01-HT01"],
+//       UT: "All Complete",
+//       Banding: "All Complete",
+//       MPI: "All Complete",
+//       Balancing: ["SH-003-AA01-HT01"],
+//       final_inspection: "All Complete"
+//     }
+//   };
+
+//   // Update modal content dynamically
+//   updateVerificationSummaryTable(verificationStatus.missing);
+
+//   // Mark as verified
+//   isCofCVerified = true;
+
+//   // Enable Print button
+//   document.getElementById("printCofCBtn").disabled = false;
+
+//   // Show modal
+//   const modal = new bootstrap.Modal(document.getElementById('verificationModal'));
+//   modal.show();
+// }
+
+
+
+
+
+// function printCofC() {
+  
+//   if (!isCofCVerified) {
+//     alert("⚠️ Please verify the CofC before printing.");
+//     return;
+//   }
+  
+//   const allChecksPassed = true;
+
+//   if (allChecksPassed && Records.length > 0) {
+//     const latest = Records[0];
+
+//     // Extract pallet data rows
+//     const palletRows = palletTable.querySelectorAll("tr");
+//     const palletData = Array.from(palletRows).map(row => {
+//       const cells = row.querySelectorAll("td");
+//       return {
+//         shell: cells[0].innerText,
+//         cast: cells[1].innerText,
+//         heat: cells[2].innerText
+//       };
+//     });
+
+//     generateCofCPDF(
+//       latest.cocnumber,
+//       latest.product,
+//       latest.user,
+//       latest.date,
+//       palletData // pass pallet items here!
+//     );
+//   } else {
+//     alert("❌ Cannot generate CofC PDF. Some checks are incomplete.");
+//   }
+// }
+
+
+
+
+
+
+
+
+// function generateCofCPDF(cocNumber, product, user, date, palletItems = []) {
+//   const doc = new jsPDF();
+  
+//   // Your Base64 logo string here:
+//   const logoBase64 = "";  // <-- replace with your actual logo Base64
+
+//   // Add logo image to PDF (x=20, y=10, width=40, height=20)
+//   doc.addImage(logoBase64, 'PNG', 20, 10, 60, 30);
+
+//   doc.setFontSize(14);
+//   doc.text("CERTIFICATE OF CONFORMANCE", 130, 20, null, null, "center");
+
+//   doc.setFontSize(10);
+//   doc.text(`CofC Number: ${cocNumber}`, 20, 40);
+//   doc.text(`Product Description: ${product}`, 20, 50);
+//   doc.text(`Issued By: ${user}`, 20, 60);
+//   doc.text(`Date Issued: ${date}`, 20, 70);
+
+//   // Certification Statement
+//   doc.setFont(undefined, 'bold');
+//   doc.text("Certification Statement:", 20, 85);
+//   doc.setFont(undefined, 'normal');
+//   doc.text(
+//     "This certifies that the items listed below have been manufactured and inspected in accordance with the contractual requirements, technical specifications, and applicable quality standards.",
+//     20, 90, { maxWidth: 170 }
+//   );
+
+//   // Checklist with Batches
+//   doc.setFont(undefined, 'bold');
+//   doc.text("Checklist Summary:", 20, 110);
+//   doc.setFont(undefined, 'normal');
+
+//   const checklist = [
+//     "✔ Heat Treatment & Tensile: AAS-HAA; AAV-HAB; AAA-HAA",
+//     "✔ Duplicates: None",
+//     "✔ Ultrasonic Testing: All Complete",
+//     "✔ Banding : All Complete",
+//     "✔ MPI: All Complete",
+//     "✔ Balancing Data: All Complete",
+//     "✔ Final Inspection: All Complete"
+//   ];
+
+//   checklist.forEach((line, idx) => {
+//     doc.text(line, 25, 115 + idx * 7);
+//   });
+
+//   // Calculate starting Y after checklist
+//   let startY = 120 + checklist.length * 7 + 10;
+
+//   // Pallet Items Table
+//   if (palletItems.length > 0) {
+//     doc.setFont(undefined, 'bold');
+//     doc.text("Pallet Items:", 20, startY);
+//     startY += 7;
+
+//     // Table header
+//     doc.setFont(undefined, 'bold');
+//     doc.text("Shell #", 25, startY);
+//     doc.text("Cast Code", 70, startY);
+//     doc.text("Heat Code", 130, startY);
+//     startY += 5;
+
+//     // Horizontal line under header
+//     doc.line(20, startY, 190, startY);
+//     startY += 3;
+
+//     doc.setFont(undefined, 'normal');
+//     palletItems.forEach(item => {
+//       doc.text(item.shell, 25, startY);
+//       doc.text(item.cast, 70, startY);
+//       doc.text(item.heat, 130, startY);
+//       startY += 7;
+//     });
+//   }
+
+//   // Now place Conformance Statement BELOW the pallet items table (or checklist if no pallet items)
+//   startY += 10;  // add some space before conformance statement
+
+//   doc.setFont(undefined, 'bold');
+//   doc.text("", 20, startY);
+//   startY += 6;
+
+//   doc.setFont(undefined, 'normal');
+//   doc.text(
+//     "",
+//     20, startY, { maxWidth: 170 }
+//   );
+
+//   // Move startY down to allow for multiline text height (~20-30 units)
+//   startY += 30;
+
+//   // Signature lines
+//   doc.line(20, startY + 20, 80, startY + 20);
+//   doc.text("Quality Signature", 20, startY + 25);
+
+//   doc.line(120, startY + 20, 180, startY + 20);
+//   doc.text("Date", 120, startY + 25);
+
+//   // Save PDF
+//   doc.save(`CofC_${cocNumber}.pdf`);
+// }
+
+
+
+
+
+
+
+
+
+export function filterInspectionData() {
+  const search = document.getElementById("inspectionSearch").value.toLowerCase();
+  const rows = document.querySelectorAll("#inspectionTable tbody tr");
+
+  console.log("Search input:", search);
+  console.log("Rows found:", rows.length); // ← Should be > 0
+
+  rows.forEach(row => {
+    const text = row.innerText.toLowerCase();
+    row.style.display = text.includes(search) ? "" : "none";
+  });
+}
+window.filterInspectionData = filterInspectionData;
+
+
+
+
+// function updateVerificationSummaryTable(missingData) {
+//   const container = document.getElementById('verificationTableContainer');
+//   container.innerHTML = ''; // Clear previous content
+
+//   // Table header
+//   let tableHTML = `
+//     <table class="table table-bordered table-sm">
+//       <thead class="table-light">
+//         <tr>
+//           <th>Component</th>
+//           <th>Status</th>
+//           <th>Missing Items</th>
+//         </tr>
+//       </thead>
+//       <tbody>
+//   `;
+
+//   const displayNames = {
+//     heat_treatment: "Heat Treatment & Tensile",
+//     UT: "UT",
+//     MPI: "MPI",
+//     Balancing: "Balancing Data",
+//     final_inspection: "Final Inspection"
+//   };
+
+//   for (const key in missingData) {
+//     const value = missingData[key];
+//     const displayName = displayNames[key] || key;
+
+//     let statusText = '';
+//     let missingText = '';
+
+//     if (Array.isArray(value)) {
+//       if (value.length === 0) {
+//         statusText = `<span class="text-success">All Complete</span>`;
+//         missingText = '-';
+//       } else {
+//         statusText = `<span class="text-danger">Missing</span>`;
+//         missingText = value.join(", ");
+//       }
+//     } else if (typeof value === 'string') {
+//       if (value.toLowerCase().includes('complete')) {
+//         statusText = `<span class="text-success">${value}</span>`;
+//         missingText = '-';
+//       } else {
+//         statusText = `<span class="text-danger">${value}</span>`;
+//         missingText = '-';
+//       }
+//     } else {
+//       statusText = `<span class="text-muted">Unknown status</span>`;
+//       missingText = '-';
+//     }
+
+//     tableHTML += `
+//       <tr>
+//         <td>${displayName}</td>
+//         <td>${statusText}</td>
+//         <td style="word-break: break-word; max-width: 250px;">${missingText}</td>
+//       </tr>
+//     `;
+//   }
+
+//   tableHTML += '</tbody></table>';
+//   container.innerHTML = tableHTML;
+// }
+
+function updateVerificationSummaryTable(missingData) {
+  const container = document.getElementById('verificationTableContainer');
+  container.innerHTML = ''; // Clear previous content
+
+  // Table header
+  let tableHTML = `
+    <table class="table table-bordered table-sm">
+      <thead class="table-light">
+        <tr>
+          <th>Component</th>
+          <th>Status</th>
+          <th>Missing Items</th>
+        </tr>
+      </thead>
+      <tbody>
+  `;
+
+  const displayNames = {
+    heat_treatment: "Heat Treatment & Tensile",
+    UT: "UT",
+    Banding: "Banding",
+    MPI: "MPI",
+    // Balancing: "Balancing Data",
+    final_inspection: "Final Inspection"
+  };
+
+  for (const key in missingData) {
+    const value = missingData[key];
+    const displayName = displayNames[key] || key;
+
+    let statusText = '';
+    let missingText = '';
+
+    if (Array.isArray(value)) {
+      if (value.length === 0) {
+        statusText = `<span class="text-success">All Complete</span>`;
+        missingText = '-';
+      } else {
+        statusText = `<span class="text-danger">Missing</span>`;
+        // Join each item. If item is a list, join its contents.
+        missingText = value.map(item => {
+          return Array.isArray(item) ? item.join(" | ") : item;
+        }).join(", ");
+      }
+    } else if (typeof value === 'string') {
+      if (value.toLowerCase().includes('complete')) {
+        statusText = `<span class="text-success">${value}</span>`;
+        missingText = '-';
+      } else {
+        statusText = `<span class="text-danger">${value}</span>`;
+        missingText = '-';
+      }
+    } else {
+      statusText = `<span class="text-muted">Unknown status</span>`;
+      missingText = '-';
+    }
+
+    tableHTML += `
+      <tr>
+        <td>${displayName}</td>
+        <td>${statusText}</td>
+        <td style="word-break: break-word; max-width: 250px;">${missingText}</td>
+      </tr>
+    `;
+  }
+
+  tableHTML += '</tbody></table>';
+  container.innerHTML = tableHTML;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+//////////////////
+// Old code
+/////////////////
+
+
+// let currentUser = "Unknown";
+// let cofcId = null; // Make cofcId global
+// let isCofCVerified = false;
+// const { jsPDF } = window.jspdf;
+
+// async function loadCofcDetails() {
+//   const token = localStorage.getItem("authToken");
+//   cofcId = 1 // getCofcIdFromURL(); // Ensure cofcId is globally set
+//   if (!cofcId) return;
+
+//   try {
+//     const response = await fetch(`https://tracewiseptf.onrender.com/api/certificate/cofc/${cofcId}/`, {
+//       headers: { "Authorization": `Bearer ${token}` }
+//     });
+
+//     if (response.ok) {
+//       const data = await response.json();
+//       document.getElementById("cocNumber").textContent = data.coc_number;
+//       document.getElementById("productName").textContent = data.product; // Or fetch product name from your DB/API
+//       document.getElementById("userName").textContent = data.user;
+//     } else {
+//       console.error("Failed to load CofC details.");
+//     }
+//   } catch (err) {
+//     console.error("Network error:", err);
+//   }
+// }
+
+
+// function getCofcIdFromURL() {
+//   const params = new URLSearchParams(window.location.search);
+//   return params.get("id");
+// }
+
+// async function fetchCurrentUser() {
+//   const token = localStorage.getItem("authToken");
+//   if (!token) return;
+
+//   try {
+//     const response = await fetch("https://tracewiseptf.onrender.com/api/whoami/", {
+//       headers: {
+//         "Authorization": `Bearer ${token}`,
+//         "Content-Type": "application/json"
+//       }
+//     });
+
+//     if (response.ok) {
+//       const user = await response.json();
+//       currentUser = user.username;
+//       console.log("✅ Logged in as:", currentUser);
+//     } else {
+//       console.warn("❌ Failed to fetch user info");
+//     }
+//   } catch (err) {
+//     console.error("Error fetching current user:", err);
+//   }
+// }
+
+
+// const inspectionTableBody = document.querySelector("#inspectionTable tbody");
+
+// async function loadInspectionData() {
+//   try {
+//     const response = await fetch("https://tracewiseptf.onrender.com/api/final_inspection/final-inspection/", {
+//       headers: {
+//         "Authorization": `Bearer ${localStorage.getItem("authToken")}`,
+//         "Content-Type": "application/json"
+//       }
+//     });
+
+//     if (!response.ok) {
+//       throw new Error("Failed to fetch inspection data");
+//     }
+
+//     const inspectionData = await response.json();
+
+//     inspectionData.forEach((item) => {
+//       const row = document.createElement("tr");
+//       row.innerHTML = `<td>${item.serial}</td><td>${item.cast_code}</td><td>${item.heat_code}</td>`;
+//       row.style.cursor = "pointer";
+//       row.addEventListener("click", () => moveToPallet(row));
+//       inspectionTableBody.appendChild(row);
+//     });
+
+//     console.log("✅ Inspection data loaded:", inspectionData);
+//   } catch (error) {
+//     console.error("❌ Error loading inspection data:", error);
+//   }
+// }
+
+
+
+
+
+// function addComponentToPallet(component) {
+//   const row = document.createElement("tr");
+//   row.innerHTML = `
+//     <td>${component.serial}</td>
+//     <td>${component.cast_code}</td>
+//     <td>${component.heat_code}</td>
+//   `;
+
+//   // Add remove button
+//   const removeTd = document.createElement("td");
+//   removeTd.innerHTML = `<button class="btn btn-danger btn-sm remove-btn">Remove</button>`;
+//   removeTd.querySelector("button").addEventListener("click", (e) => {
+//     e.stopPropagation();
+//     removeFromPallet(row);
+//   });
+//   row.appendChild(removeTd);
+
+//   // Store component ID for deletion
+//   row.dataset.componentId = component.id;
+
+//   palletTable.appendChild(row);
+// }
+
+
+// async function loadPalletComponents() {
+//   const cocId = document.getElementById("cocNumber").dataset.id;
+//   if (!cocId) return;
+
+//   try {
+//     const response = await fetch(`https://tracewiseptf.onrender.com/api/certificate/components/?certificate=${cocId}`, {
+//       headers: {
+//         "Authorization": `Bearer ${localStorage.getItem("authToken")}`,
+//         "Content-Type": "application/json"
+//       }
+//     });
+
+//     if (!response.ok) {
+//       throw new Error("Failed to fetch pallet components");
+//     }
+
+//     const components = await response.json();
+//     components.forEach(component => addComponentToPallet(component));
+//     console.log("✅ Pallet loaded:", components);
+//   } catch (err) {
+//     console.error("❌ Error loading pallet:", err);
+//   }
+// }
+
+
+
+
+
+
+
+
+// async function moveToPallet(row) {
+//   // Add remove button if not already present
+//   if (!row.querySelector(".remove-btn")) {
+//     const removeTd = document.createElement("td");
+//     removeTd.innerHTML = `<button class="btn btn-danger btn-sm remove-btn">Remove</button>`;
+//     removeTd.querySelector("button").addEventListener("click", (e) => {
+//       e.stopPropagation();
+//       removeFromPallet(row);
+//     });
+//     row.appendChild(removeTd);
+//   }
+
+//   // Extract values from the clicked row
+//   const cells = row.querySelectorAll("td");
+//   const shell = cells[0].innerText.trim();
+//   const cast = cells[1].innerText.trim();
+//   const heat = cells[2].innerText.trim();
+
+//   // Get CofC ID (assumes it's stored in a hidden span or data attribute)
+//   const cocId = document.getElementById("cocNumber").dataset.id;  // Example: <span id="cocNumber" data-id="1">0001</span>
+//   if (!cocId) {
+//     console.warn("❌ CofC ID not found. Cannot save component.");
+//     return;
+//   }
+
+//   // Prepare component payload
+//   const componentData = {
+//     certificate: cocId,
+//     serial: shell,
+//     cast_code: cast,
+//     heat_code: heat
+//   };
+
+//   // Send POST request
+//   try {
+//     const token = localStorage.getItem("authToken");
+
+//     const response = await fetch("https://tracewiseptf.onrender.com/api/certificate/components/", {
+//       method: "POST",
+//       headers: {
+//         "Content-Type": "application/json",
+//         "Authorization": `Bearer ${token}`
+//       },
+//       body: JSON.stringify(componentData)
+//     });
+
+//     if (response.ok) {
+//       const savedComponent = await response.json();  // <== ADD THIS
+
+//       console.log("✅ Component saved:", savedComponent);
+//       // Store the backend ID on the row
+//       row.dataset.componentId = savedComponent.id;
+      
+//       palletTable.appendChild(row);  // Move row after save
+//     } else {
+//       const error = await response.json();
+//       console.error("❌ Error saving component:", error);
+//       alert("Failed to save component. Check console for details.");
+//     }
+//   } catch (err) {
+//     console.error("⚠️ Network or server error:", err);
+//     alert("Network error while saving component.");
+//   }
+// }
+
+
+
+// async function removeFromPallet(row) {
+//   const componentId = row.dataset.componentId;
+//   console.log("componentId: ", componentId)
+
+//   // If the row has a backend ID, delete from backend
+//   if (componentId) {
+//     const confirmed = confirm("Are you sure you want to remove this component?");
+//     if (!confirmed) return;
+
+//     try {
+//       const response = await fetch(`https://tracewiseptf.onrender.com/api/certificate/components/${componentId}/`, {
+//         method: "DELETE",
+//         headers: {
+//           "Authorization": `Bearer ${localStorage.getItem("authToken")}`,
+//           "Content-Type": "application/json",
+//         },
+//       });
+
+//       if (!response.ok) {
+//         const error = await response.text();
+//         console.error("❌ Failed to delete component:", error);
+//         alert("Failed to delete component from server.");
+//         return;
+//       }
+
+//       console.log(`✅ Component ${componentId} deleted from backend`);
+//     } catch (err) {
+//       console.error("⚠️ Network error during deletion:", err);
+//       alert("Error deleting component.");
+//       return;
+//     }
+//   }
+
+//   // Remove the delete button (last cell)
+//   const lastCell = row.lastElementChild;
+//   if (lastCell && (lastCell.classList.contains("remove-btn") || lastCell.querySelector(".remove-btn"))) {
+//     row.removeChild(lastCell);
+//   }
+
+//   // Remove backend reference
+//   delete row.dataset.componentId;
+
+//   // Move the row back to inspection table
+//   inspectionTableBody.appendChild(row);
+// }
 
 
 
@@ -75,7 +980,7 @@ const Records = [
     product: "Shell Casing",
     user: "j.molefe",
     date: "2025-07-08 11:42 AM",
-    quantity: 24,
+    quantity: 100,
     complete: "✔",
     comments: ""
   }
@@ -83,43 +988,40 @@ const Records = [
 
 
 
-function verifyCofC() {
-  const palletRows = palletTable.querySelectorAll("tr");
-  const palletData = Array.from(palletRows).map(row => {
-    const cells = row.querySelectorAll("td");
-    return {
-      shell: cells[0].innerText,
-      cast: cells[1].innerText,
-      heat: cells[2].innerText
-    };
-  });
-  console.log("✅ CofC Verified with Pallet Data:", palletData);
+async function verifyCofC() {
+  let cocId = document.getElementById("cocNumber").dataset.id;
+  cocId=1
+  const token = localStorage.getItem("authToken");
 
-  // Example incoming JSON verification status:
-  const verificationStatus = {
-    missing: {
-      heat_treatment: ["SH-001-AA01-HT01"],
-      UT: "All Complete",
-      Banding: "All Complete",
-      MPI: "All Complete",
-      Balancing: ["SH-003-AA01-HT01"],
-      final_inspection: "All Complete"
+  try {
+    const response = await fetch(`https://tracewiseptf.onrender.com/api/certificate/verify/?certificate=${cocId}`, {
+      headers: {
+        "Authorization": `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error("Verification request failed");
     }
-  };
 
-  // Update modal content dynamically
-  updateVerificationSummaryTable(verificationStatus.missing);
+    const data = await response.json();
+    const missing = data.missing;
+    updateVerificationSummaryTable(missing);
 
-  // Mark as verified
-  isCofCVerified = true;
+    isCofCVerified = true;
+    document.getElementById("printCofCBtn").disabled = false;
 
-  // Enable Print button
-  document.getElementById("printCofCBtn").disabled = false;
-
-  // Show modal
-  const modal = new bootstrap.Modal(document.getElementById('verificationModal'));
-  modal.show();
+    const modal = new bootstrap.Modal(document.getElementById('verificationModal'));
+    modal.show();
+  } catch (err) {
+    console.error("❌ Verification failed:", err);
+    alert("Verification error. See console.");
+  }
 }
+
+
+
 
 
 
@@ -171,7 +1073,7 @@ function generateCofCPDF(cocNumber, product, user, date, palletItems = []) {
   const doc = new jsPDF();
   
   // Your Base64 logo string here:
-  const logoBase64 = "data:data:image/jpeg;base64,/9j/4AAQSkZJRgABAQEBLAEsAAD/2wBDAAMCAgMCAgMDAwMEAwMEBQgFBQQEBQoHBwYIDAoMDAsKCwsNDhIQDQ4RDgsLEBYQERMUFRUVDA8XGBYUGBIUFRT/2wBDAQMEBAUEBQkFBQkUDQsNFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBT/wAARCAJYAyADASIAAhEBAxEB/8QAHgABAAICAwEBAQAAAAAAAAAAAAgJBgcDBQoEAgH/xABgEAABAwMCAwQDCAkOCAwHAAAAAQIDBAUGBxEIEiEJEzFBFDhRFSIyYXF1gbMXI0JSdHahsrQWGBkzN1ZicnOCkZKUsTRTV5OVtdLTJTU2Q0lVY4eiwcTRKDlGWIOWo//EABYBAQEBAAAAAAAAAAAAAAAAAAABAv/EABgRAQEBAQEAAAAAAAAAAAAAAAABESEx/9oADAMBAAIRAxEAPwC1MABgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA0Lxn8Rty4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AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA/9k=";  // <-- replace with your actual logo Base64
+  const logoBase64 = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAXAAAAB5CAYAAAAgYXpDAAAACXBIWXMAAAsTAAALEwEAmpwYAAAFv2lUWHRYTUw6Y29tLmFkb2JlLnhtcAAAAAAAPD94cGFja2V0IGJlZ2luPSLvu78iIGlkPSJXNU0wTXBDZWhpSHpyZVN6TlRjemtjOWQiPz4gPHg6eG1wbWV0YSB4bWxuczp4PSJhZG9iZTpuczptZXRhLyIgeDp4bXB0az0iQWRvYmUgWE1QIENvcmUgNy4yLWMwMDAgNzkuMWI2NWE3OSwgMjAyMi8wNi8xMy0xNzo0NjoxNCAgICAgICAgIj4gPHJkZjpSREYgeG1sbnM6cmRmPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5LzAyLzIyLXJkZi1zeW50YXgtbnMjIj4gPHJkZjpEZXNjcmlwdGlvbiByZGY6YWJvdXQ9IiIgeG1sbnM6eG1wPSJodHRwOi8vbnMuYWRvYmUuY29tL3hhcC8xLjAvIiB4bWxuczp4bXBNTT0iaHR0cDovL25zLmFkb2JlLmNvbS94YXAvMS4wL21tLyIgeG1sbnM6c3RSZWY9Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC9zVHlwZS9SZXNvdXJjZVJlZiMiIHhtbG5zOnN0RXZ0PSJodHRwOi8vbnMuYWRvYmUuY29tL3hhcC8xLjAvc1R5cGUvUmVzb3VyY2VFdmVudCMiIHhtbG5zOmRjPSJodHRwOi8vcHVybC5vcmcvZGMvZWxlbWVudHMvMS4xLyIgeG1sbnM6cGhvdG9zaG9wPSJodHRwOi8vbnMuYWRvYmUuY29tL3Bob3Rvc2hvcC8xLjAvIiB4bXA6Q3JlYXRvclRvb2w9IkFkb2JlIFBob3Rvc2hvcCBDUzYgKFdpbmRvd3MpIiB4bXA6Q3JlYXRlRGF0ZT0iMjAyMi0xMC0xMlQwNzo0MjowMyswMTowMCIgeG1wOk1vZGlmeURhdGU9IjIwMjItMTAtMTJUMDg6MzM6MzErMDE6MDAiIHhtcDpNZXRhZGF0YURhdGU9IjIwMjItMTAtMTJUMDg6MzM6MzErMDE6MDAiIHhtcE1NOkluc3RhbmNlSUQ9InhtcC5paWQ6MmQ0NDRiODQtNzY5OS03YTQ5LThhZjItMmFhNmZlMzc5MmZmIiB4bXBNTTpEb2N1bWVudElEPSJ4bXAuZGlkOkNCQ0E1NjJBNjkxMzExRTZCQTk3QjMwOEQyMURGMzg3IiB4bXBNTTpPcmlnaW5hbERvY3VtZW50SUQ9InhtcC5kaWQ6Q0JDQTU2MkE2OTEzMTFFNkJBOTdCMzA4RDIxREYzODciIGRjOmZvcm1hdD0iaW1hZ2UvcG5nIiBwaG90b3Nob3A6Q29sb3JNb2RlPSIzIj4gPHhtcE1NOkRlcml2ZWRGcm9tIHN0UmVmOmluc3RhbmNlSUQ9InhtcC5paWQ6Q0JDQTU2Mjc2OTEzMTFFNkJBOTdCMzA4RDIxREYzODciIHN0UmVmOmRvY3VtZW50SUQ9InhtcC5kaWQ6Q0JDQTU2Mjg2OTEzMTFFNkJBOTdCMzA4RDIxREYzODciLz4gPHhtcE1NOkhpc3Rvcnk+IDxyZGY6U2VxPiA8cmRmOmxpIHN0RXZ0OmFjdGlvbj0ic2F2ZWQiIHN0RXZ0Omluc3RhbmNlSUQ9InhtcC5paWQ6MmQ0NDRiODQtNzY5OS03YTQ5LThhZjItMmFhNmZlMzc5MmZmIiBzdEV2dDp3aGVuPSIyMDIyLTEwLTEyVDA4OjMzOjMxKzAxOjAwIiBzdEV2dDpzb2Z0d2FyZUFnZW50PSJBZG9iZSBQaG90b3Nob3AgMjMuNSAoV2luZG93cykiIHN0RXZ0OmNoYW5nZWQ9Ii8iLz4gPC9yZGY6U2VxPiA8L3htcE1NOkhpc3Rvcnk+IDwvcmRmOkRlc2NyaXB0aW9uPiA8L3JkZjpSREY+IDwveDp4bXBtZXRhPiA8P3hwYWNrZXQgZW5kPSJyIj8+O7gjHAAAIcFJREFUeNrtnXmAFMUVxilBbsQFvECCroISQVQU1HAIrAcGI4iYxCterKIYNFEXDcQrUbzFiLoBEUVQUREFRV3PKKiIgngggRU18eBwvaJyb+o5X2ttbVV3dU93z+zu++PHLD3T3dVVXV9Xv3rvVT3Rd3Q9xkh9SQtJB8mhkoGSoySDJccoHI3PQZJf43dHSA6UbCtpyHXJMEwS1OWLJ3HeU9JTcqJkvGSW5GHJXMn7kpWSVZLNksqQfC/5ULIcx5speVTyT8lwycGSbpJCSTO+GRmGYQE3QyPhXpKzJTdK7pS8Lfk6gjDHyXrJaslbkkck10t+J+kqacI3KMMwdVHAG0kO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";  // <-- replace with your actual logo Base64
 
   // Add logo image to PDF (x=20, y=10, width=40, height=20)
   doc.addImage(logoBase64, 'PNG', 20, 10, 60, 30);
@@ -199,19 +1101,23 @@ function generateCofCPDF(cocNumber, product, user, date, palletItems = []) {
   doc.text("Checklist Summary:", 20, 110);
   doc.setFont(undefined, 'normal');
 
+
+  
   const checklist = [
-    "✔ Heat Treatment & Tensile: AAS-HAA; AAV-HAB; AAA-HAA",
-    "✔ Duplicates: None",
-    "✔ Ultrasonic Testing: All Complete",
-    "✔ Banding : All Complete",
-    "✔ MPI: All Complete",
-    "✔ Balancing Data: All Complete",
-    "✔ Final Inspection: All Complete"
+    missing_heat_treatment ? "❌ Heat Treatment: Missing items" : "✔ Heat Treatment: All Complete",
+    missing_ut ? "❌ UT: Missing items" : "✔ UT: All Complete",
+    missing_mpi ? "❌ MPI: Missing items" : "✔ MPI: All Complete",
+    missing_final_inspection ? "❌ Final Inspection: Missing items" : "✔ Final Inspection: All Complete"
   ];
+
+
 
   checklist.forEach((line, idx) => {
     doc.text(line, 25, 115 + idx * 7);
   });
+  
+  
+
 
   // Calculate starting Y after checklist
   let startY = 120 + checklist.length * 7 + 10;
@@ -266,10 +1172,13 @@ function generateCofCPDF(cocNumber, product, user, date, palletItems = []) {
   doc.text("Date", 120, startY + 25);
 
   // Save PDF
-  doc.save(`CofC_${cocNumber}.pdf`);
+  doc.save(`dffdgdf_${cocNumber}.pdf`);
 }
 
 
+window.addEventListener("DOMContentLoaded", () => {
+  init();
+});
 
 
 
@@ -277,87 +1186,25 @@ function generateCofCPDF(cocNumber, product, user, date, palletItems = []) {
 
 
 
-export function filterInspectionData() {
-  const search = document.getElementById("inspectionSearch").value.toLowerCase();
-  const rows = document.querySelectorAll("#inspectionTable tbody tr");
-
-  console.log("Search input:", search);
-  console.log("Rows found:", rows.length); // ← Should be > 0
-
-  rows.forEach(row => {
-    const text = row.innerText.toLowerCase();
-    row.style.display = text.includes(search) ? "" : "none";
-  });
-}
-window.filterInspectionData = filterInspectionData;
 
 
 
-function updateVerificationSummaryTable(missingData) {
-  const container = document.getElementById('verificationTableContainer');
-  container.innerHTML = ''; // Clear previous content
-
-  // Table header
-  let tableHTML = `
-    <table class="table table-bordered table-sm">
-      <thead class="table-light">
-        <tr>
-          <th>Component</th>
-          <th>Status</th>
-          <th>Missing Items</th>
-        </tr>
-      </thead>
-      <tbody>
-  `;
-
-  const displayNames = {
-    heat_treatment: "Heat Treatment & Tensile",
-    UT: "UT",
-    Banding: "Banding",
-    MPI: "MPI",
-    Balancing: "Balancing Data",
-    final_inspection: "Final Inspection"
-  };
-
-  for (const key in missingData) {
-    const value = missingData[key];
-    const displayName = displayNames[key] || key;
-
-    let statusText = '';
-    let missingText = '';
-
-    if (Array.isArray(value)) {
-      if (value.length === 0) {
-        statusText = `<span class="text-success">All Complete</span>`;
-        missingText = '-';
-      } else {
-        statusText = `<span class="text-danger">Missing</span>`;
-        missingText = value.join(", ");
-      }
-    } else if (typeof value === 'string') {
-      if (value.toLowerCase().includes('complete')) {
-        statusText = `<span class="text-success">${value}</span>`;
-        missingText = '-';
-      } else {
-        statusText = `<span class="text-danger">${value}</span>`;
-        missingText = '-';
-      }
-    } else {
-      statusText = `<span class="text-muted">Unknown status</span>`;
-      missingText = '-';
-    }
-
-    tableHTML += `
-      <tr>
-        <td>${displayName}</td>
-        <td>${statusText}</td>
-        <td style="word-break: break-word; max-width: 250px;">${missingText}</td>
-      </tr>
-    `;
-  }
-
-  tableHTML += '</tbody></table>';
-  container.innerHTML = tableHTML;
-}
 
 
+
+
+// window.onload = async function () {
+//   await fetchCurrentUser();
+//   // cofcId = getCofcIdFromURL();
+//   // console.log("📄 CofC ID:", cofcId);
+
+// //   if (!cofcId) {
+// //     alert("❌ No CofC ID found in the URL.");
+// //     return;
+// //   }
+
+//   // Optional: load existing CofC details
+//   await loadCofcDetails(); //← create this if needed
+//   await loadInspectionData();
+//   await loadPalletComponents();
+// };

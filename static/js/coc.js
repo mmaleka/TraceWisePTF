@@ -11,44 +11,73 @@ export function init() {
         closeFormPanel()
     });
 
-    // Initial render
-    renderTable();
 
-    let cocCounter = 5; // or use a timestamp-based generator
+  
+    fetchCurrentUser();
+    populateProductOptions();
+    fetchCofCRecords(); 
 
     // Handle form submission
-    document.getElementById("Form").addEventListener("submit", function (e) {
-    e.preventDefault();
+    document.getElementById("Form").addEventListener("submit", async function (e) {
+      e.preventDefault();
 
-    const generatedCofCNumber = String(cocCounter).padStart(4, '0');
-    cocCounter++;
+      const order = document.getElementById("order").value;
+      const product = document.getElementById("product").value;
+      const comments = document.getElementById("comments").value;
+      const token = localStorage.getItem("authToken");
 
+      if (!token) {
+        alert("You must be logged in to submit.");
+        return;
+      }
 
-    const newRecord = {
-        cocnumber: generatedCofCNumber,
-        product: document.getElementById("product").value,
-        comments: document.getElementById("comments").value,
-        user: currentUser,
-        date: new Date().toLocaleString(),
-        quantity: 0,
-        complete: "❌"
-    };
+      try {
+        const response = await fetch("https://tracewiseptf.onrender.com/api/certificate/cofc/", {
+          method: "POST",
+          headers: {
+            "Authorization": `Bearer ${token}`,
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            order: order,
+            product: product,
+            comments: comments,
+            quantity: 0,      // default value
+            complete: false   // default value
+          })
+        });
 
-    Records.unshift(newRecord);
-    renderTable();
-    this.reset();
-    // closeForm();
-    // closeFormPanel();
+        if (response.ok) {
+          const newCofC = await response.json();
+          console.log("✅ CoC saved:", newCofC);
+          Records.unshift({
+            cocnumber: newCofC.coc_number,
+            order: order,
+            product: product,
+            comments: comments,
+            user: currentUser,
+            date: new Date(newCofC.date).toLocaleString(),
+            quantity: newCofC.quantity,
+            complete: newCofC.complete ? "✅" : "❌"
+          });
+          renderTable();
+          this.reset();
+          closeFormPanel();
+        } else {
+          const errorData = await response.json();
+          console.error("❌ Failed to save:", errorData);
+          alert("Failed to save CoC.");
+        }
+
+      } catch (err) {
+        console.error("Error submitting form:", err);
+        alert("Network error. Please try again.");
+      }
     });
 
 
 
-
 }  
-
-// Simulated session username (replace with real session later)
-const currentUser = "j.molefe"; // or dynamically set this after login
-let currentProduct = "M0121 Body"; // default on load
 
 
 function openFormPanel() {
@@ -69,73 +98,149 @@ function closeFormPanel() {
     if (overlay) overlay.remove();
 }
 
+
+
+
+
+// Simulated session username (replace with real session later)
+let currentProduct = "..."; // default on load
+let currentUser = "Unknown";
+let Records = [];
+
+async function fetchCurrentUser() {
+  const token = localStorage.getItem("authToken");
+  if (!token) return;
+
+  try {
+    const response = await fetch("https://tracewiseptf.onrender.com/api/whoami/", {
+      headers: {
+        "Authorization": `Bearer ${token}`,
+        "Content-Type": "application/json"
+      }
+    });
+
+    if (response.ok) {
+      const user = await response.json();
+      currentUser = user.username; // or use user.first_name + " " + user.last_name
+      console.log("✅ Logged in as:", currentUser);
+    } else {
+      console.warn("❌ Failed to fetch user info");
+    }
+  } catch (err) {
+    console.error("Error fetching current user:", err);
+  }
+}
+
+
+
+async function populateProductOptions() {
+  const token = localStorage.getItem("authToken");
+  if (!token) return;
+
+  try {
+    const response = await fetch("https://tracewiseptf.onrender.com/api/products/", {
+      headers: {
+        "Authorization": `Bearer ${token}`
+      }
+    });
+    if (response.ok) {
+      const products = await response.json();
+      const select = document.getElementById("product");
+      select.innerHTML = '<option value="" disabled selected>Select a product</option>';
+      products.forEach(p => {
+        const opt = document.createElement("option");
+        opt.value = p.id;
+        opt.textContent = p.name;
+        select.appendChild(opt);
+      });
+    }
+  } catch (err) {
+    console.error("Error loading products:", err);
+  }
+}
+
+
+
+
 // const utRecords = []; // Your table data
 const TableBody = document.getElementById("TableBody");
 
+async function fetchCofCRecords() {
+  const token = localStorage.getItem("authToken");
+  if (!token) return;
 
+  try {
+    const response = await fetch("https://tracewiseptf.onrender.com/api/certificate/cofc/", {
+      headers: {
+        "Authorization": `Bearer ${token}`
+      }
+    });
 
+    if (response.ok) {
+      const records = await response.json();
+      console.log("records: ", records)
+      Records.length = 0; // Clear old records
 
+      records.forEach(record => {
+        Records.push({
+          cocnumber: record.coc_number,
+          order: record.order,
+          product: typeof record.product === "object" ? record.product.name : record.product, // fallback
+          comments: record.comments || "-",
+          user: record.user || "Unknown",
+          date: new Date(record.date).toLocaleString(),
+          quantity: record.quantity,
+          complete: record.complete ? "✅" : "❌"
+        });
+      });
 
-// const Records = [];
-const Records = [
-{
-cocnumber: "0001",
-product: "105mm Shell",
-comments: "Batch from supplier A",
-user: currentUser,
-date: new Date("2025-07-01T10:30:00").toLocaleString(),
-quantity: 25,
-complete: "✅"
-},
-{
-cocnumber: "0002",
-product: "155mm Shell",
-comments: "Initial production test",
-user: currentUser,
-date: new Date("2025-07-03T14:45:00").toLocaleString(),
-quantity: 40,
-complete: "❌"
-},
-{
-cocnumber: "0003",
-product: "Mortar Tail Fin",
-comments: "Full batch QC complete",
-user: currentUser,
-date: new Date("2025-07-05T08:20:00").toLocaleString(),
-quantity: 60,
-complete: "✅"
+      renderTable();
+    } else {
+      console.error("❌ Failed to fetch CoC data:", await response.json());
+    }
+
+  } catch (err) {
+    console.error("❌ Error fetching CoC records:", err);
+  }
 }
-];
+
+
 
 
 
 
 function renderTable() {
-const tbody = document.getElementById("TableBody");
-tbody.innerHTML = "";
+  const tbody = document.getElementById("TableBody");
+  tbody.innerHTML = "";
+  
+  if (Records.length === 0) {
+    tbody.innerHTML = "<tr><td colspan='10'>No CofC found.</td></tr>";
+    return;
+  }
+  
 
-Records.forEach(record => {
-const row = document.createElement("tr");
-row.innerHTML = `
-    <td><a href="#?id=${record.cocnumber}" class="nav-card" onclick="navigateTo('coc_detail')">${record.cocnumber}</a></td>
-    <td>${record.product}</td>
-    <td>${record.date}</td>
-    <td>${record.user}</td>
-    <td>${record.quantity}</td>
-    <td>${record.complete}</td>
-    <td>${record.comments}</td>
-`;
-tbody.appendChild(row);
+  Records.forEach(record => {
+    const row = document.createElement("tr");
+    row.innerHTML = `
+      <td><a href="#?id=${record.cocnumber}" class="nav-card" onclick="navigateTo('coc_detail')">${record.cocnumber}</a></td>
+      <td>${record.order}</td>
+      <td>${record.product}</td>
+      <td>${record.date}</td>
+      <td>${record.user}</td>
+      <td>${record.quantity}</td>
+      <td>${record.complete}</td>
+      <td>${record.comments}</td>
+    `;
+    tbody.appendChild(row);
+  });
+}
+
+
+
+
+
+
+
+window.addEventListener("DOMContentLoaded", () => {
+  init();
 });
-}
-
-
-
-
-
-
-
-export function switchProduct(index, text) {
-Records[index].comments = text.trim() || "-";
-}
-window.switchProduct = switchProduct;

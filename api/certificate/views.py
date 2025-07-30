@@ -97,8 +97,13 @@ class VerifyCofCComponents(APIView):
             if not FinalInspectionRecord.objects.filter(heat_treatment=batch).exists():
                 missing_final_inspection.append([serial, cast_code, heat_code])
 
+
+
         def summarize(missing_list):
-            return "All Complete" if not missing_list else ", ".join(missing_list)
+            return "All Complete" if not missing_list else " , ".join(
+                ["-".join(map(str, item)) if isinstance(item, (list, tuple)) else str(item) for item in missing_list]
+            )
+
 
         # Update and save status on the certificate
         certificate.heat_treatment = summarize(missing_heat_treatment)
