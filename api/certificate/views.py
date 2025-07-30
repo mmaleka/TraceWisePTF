@@ -106,9 +106,14 @@ class VerifyCofCComponents(APIView):
 
         # Helper to summarize missing items
         def summarize(missing_list):
-            return "All Complete" if not missing_list else " , ".join(
-                ["-".join(map(str, item)) for item in missing_list]
-            )
+            formatted = []
+            for item in missing_list:
+                if isinstance(item, (list, tuple)):
+                    formatted.append(" | ".join(map(str, item)))
+                else:
+                    formatted.append(str(item))
+            return "All Complete" if not formatted else ", ".join(formatted)
+
 
         # Set summary fields
         certificate.heat_treatment = summarize(missing_heat_treatment)
