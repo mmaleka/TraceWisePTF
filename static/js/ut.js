@@ -245,12 +245,12 @@ function renderUTTable() {
 
 
 export function triggerProductLookup() {
-    console.log("sdfdg");
+    console.log("triggerProductLookup");
     
   const cast_code = document.getElementById("castCode").value.trim();
   const heat_code = document.getElementById("heatCode").value.trim();
 
-  if (cast_code && heatCode) {
+  if (cast_code && heat_code) {
     fetchProductFromHeatTreatment(cast_code, heat_code);
   }
 }

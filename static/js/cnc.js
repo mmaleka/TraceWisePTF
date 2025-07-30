@@ -20,6 +20,9 @@ export function init() {
 
     const token = localStorage.getItem("authToken");
 
+    document.getElementById("cast_code").addEventListener("input", triggerProductLookup);
+    document.getElementById("heat_code").addEventListener("input", triggerProductLookup);
+
 
     
     // const utRecords = []; // Your table data
@@ -31,15 +34,17 @@ export function init() {
     e.preventDefault();
 
     const newRecord = {
-      serialNumber: document.getElementById("serialNumber").value,
-      castCode: document.getElementById("castCode").value,
-      heatCode: document.getElementById("heatCode").value,
+      serialNumber: document.getElementById("serial").value,
+      cast_code: document.getElementById("cast_code").value,
+      heat_code: document.getElementById("heat_code").value,
       op_desc: document.getElementById("opDesc").value,
       machine_no: document.getElementById("machineNo").value,
       determination: document.getElementById("cncDetermination").value,
       comments: document.getElementById("cncComments").value || "-",
       shift: getCurrentShift()
     };
+    console.log("saving cnc data");
+    
 
     try {
       const response = await fetch("https://tracewiseptf.onrender.com/api/cnc_machining/cnc-machining/", {
@@ -51,20 +56,29 @@ export function init() {
         body: JSON.stringify(newRecord)
       });
 
-      const data = await response.json();
+      const savedRecord = await response.json();
+      console.log("savedRecord: ", savedRecord);
+      
 
       if (!response.ok) {
-        throw new Error(data.detail || Object.values(data).join(" "));
+        throw new Error(savedRecord.detail || Object.values(savedRecord).join(" "));
       }
 
-      const savedRecord = await response.json();
+      
 
       // Append to frontend table with user and date info
       utRecords.unshift({
-        ...newRecord,
+        opDesc: savedRecord.op_desc,
+        opNo: savedRecord.op_no || "-", // or null-safe
+        machineNo: savedRecord.machine_no,
+        product: savedRecord.product_name,
+        determination: savedRecord.determination,
+        comments: savedRecord.comments || "-",
+        shift: savedRecord.shift,
         user: currentUser,
-        date: new Date(savedRecord.date).toLocaleString()
+        date: new Date(savedRecord.date_recorded).toLocaleString()
       });
+
 
       renderUTTable();
       this.reset();
@@ -81,10 +95,10 @@ export function init() {
 
 
 
-    utRecords.unshift(newRecord);
-        renderUTTable();
-    this.reset();
-        closeFormPanel();
+    // utRecords.unshift(newRecord);
+    //     renderUTTable();
+    // // this.reset();
+    // //     closeFormPanel();
     });
 
 
@@ -209,19 +223,19 @@ async function loadCNCMachiningRecords() {
 
     const opDesc = "Final Machine Ogive"; // or "Pre-machine Ogive", etc.
 
-    const response = await fetch(`https://tracewiseptf.onrender.com/api/cnc_machining/cnc-machining?op_desc=${encodeURIComponent(opDesc)}`, {
-      headers: {
-        "Authorization": `Bearer ${token}`,
-        "Content-Type": "application/json"
-      }
-    });
-
-    // const response = await fetch("https://tracewiseptf.onrender.com/api/cnc_machining/cnc-machining", {
+    // const response = await fetch(`https://tracewiseptf.onrender.com/api/cnc_machining/cnc-machining?op_desc=${encodeURIComponent(opDesc)}`, {
     //   headers: {
     //     "Authorization": `Bearer ${token}`,
     //     "Content-Type": "application/json"
     //   }
     // });
+
+    const response = await fetch("https://tracewiseptf.onrender.com/api/cnc_machining/cnc-machining", {
+      headers: {
+        "Authorization": `Bearer ${token}`,
+        "Content-Type": "application/json"
+      }
+    });
 
     if (!response.ok) {
       throw new Error("Failed to fetch CNC records");
@@ -236,7 +250,7 @@ async function loadCNCMachiningRecords() {
       utRecords.push({
         opDesc: record.op_desc,
         machineNo: record.machine_no,
-        product: record.product,
+        product: record.product_name,
         determination: record.determination,
         comments: record.comments || "-",
         shift: record.shift,
@@ -271,7 +285,6 @@ function renderUTTable() {
     const row = document.createElement("tr");
     row.innerHTML = `
       <td>${r.opDesc}</td>
-      <td>${r.opNo}</td>
       <td>${r.machineNo}</td>
       <td>${r.product}</td>
       <td>
@@ -329,3 +342,42 @@ export function updateCNCComment(index, text) {
 }
 // Expose globally so inline HTML can access it
 window.updateCNCComment = updateCNCComment;
+
+
+export function triggerProductLookup() {
+    console.log("triggerProductLookup");
+    
+  const cast_code = document.getElementById("cast_code").value.trim();
+  const heat_code = document.getElementById("heat_code").value.trim();
+
+  if (cast_code && heat_code) {
+    fetchProductFromHeatTreatment(cast_code, heat_code);
+  }
+}
+window.triggerProductLookup = triggerProductLookup;
+
+
+async function fetchProductFromHeatTreatment(castCode, heatCode) {
+  const token = localStorage.getItem("authToken");
+
+  try {
+    const response = await fetch(`https://tracewiseptf.onrender.com/api/heat-treatment/lookup/?cast_code=${encodeURIComponent(castCode)}&heat_code=${encodeURIComponent(heatCode)}`, {
+      headers: {
+        "Authorization": `Bearer ${token}`,
+        "Content-Type": "application/json"
+      }
+    });
+
+    if (!response.ok) throw new Error("Failed to fetch product");
+
+    const data = await response.json();
+    if (data.product) {
+      document.getElementById("Product").value = data.product;
+    } else {
+      document.getElementById("Product").value = "";
+    }
+  } catch (err) {
+    console.error("Error looking up product:", err);
+    document.getElementById("Product").value = "";
+  }
+}

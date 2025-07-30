@@ -15,6 +15,9 @@ export function init() {
 
     document.getElementById("Product").value = "155mm HE";
 
+    document.getElementById("cast_code").addEventListener("input", triggerProductLookup);
+    document.getElementById("heat_code").addEventListener("input", triggerProductLookup);
+
     fetchCurrentUser();
     loadBandingRecords(); 
 
@@ -46,13 +49,14 @@ export function init() {
           const resizedImage = await resizeImage(file);
           formData.append("image", resizedImage);
         }
+        
 
 
         try {
           const response = await fetch("https://tracewiseptf.onrender.com/api/banding/", {
             method: "POST",
             headers: {
-              "Authorization": `Bearer ${token}` // DO NOT set Content-Type manually
+              "Authorization": `Bearer ${token}`, // DO NOT set Content-Type manually
             },
             body: formData
           });
@@ -348,3 +352,43 @@ export function updateCNCComment(index, text) {
 }
 // Expose globally so inline HTML can access it
 window.updateCNCComment = updateCNCComment;
+
+
+
+export function triggerProductLookup() {
+    console.log("triggerProductLookup");
+    
+  const cast_code = document.getElementById("cast_code").value.trim();
+  const heat_code = document.getElementById("heat_code").value.trim();
+
+  if (cast_code && heat_code) {
+    fetchProductFromHeatTreatment(cast_code, heat_code);
+  }
+}
+window.triggerProductLookup = triggerProductLookup;
+
+
+async function fetchProductFromHeatTreatment(castCode, heatCode) {
+  const token = localStorage.getItem("authToken");
+
+  try {
+    const response = await fetch(`https://tracewiseptf.onrender.com/api/heat-treatment/lookup/?cast_code=${encodeURIComponent(castCode)}&heat_code=${encodeURIComponent(heatCode)}`, {
+      headers: {
+        "Authorization": `Bearer ${token}`,
+        "Content-Type": "application/json"
+      }
+    });
+
+    if (!response.ok) throw new Error("Failed to fetch product");
+
+    const data = await response.json();
+    if (data.product) {
+      document.getElementById("Product").value = data.product;
+    } else {
+      document.getElementById("Product").value = "";
+    }
+  } catch (err) {
+    console.error("Error looking up product:", err);
+    document.getElementById("Product").value = "";
+  }
+}

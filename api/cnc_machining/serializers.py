@@ -4,11 +4,12 @@ from .models import CNCMachiningRecord, CNCOperation
 class CNCMachiningSerializer(serializers.ModelSerializer):
     product_name = serializers.SerializerMethodField()
     product_id = serializers.SerializerMethodField()
+    recorded_by_username = serializers.SerializerMethodField()
     
     class Meta:
         model = CNCMachiningRecord
         fields = '__all__'
-        extra_fields = ['product_name', 'product_id']  # Add dynamic fields for clarity
+        extra_fields = ['product_name', 'product_id', 'recorded_by_username'] # Add dynamic fields for clarity
         # read_only_fields = ['recorded_by', 'date']
 
     def get_product_name(self, obj):

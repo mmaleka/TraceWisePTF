@@ -250,7 +250,7 @@ export function triggerProductLookup() {
   const cast_code = document.getElementById("castCode").value.trim();
   const heat_code = document.getElementById("heatCode").value.trim();
 
-  if (cast_code && heatCode) {
+  if (cast_code && heat_code) {
     fetchProductFromHeatTreatment(cast_code, heat_code);
   }
 }
