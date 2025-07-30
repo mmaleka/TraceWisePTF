@@ -48,6 +48,7 @@ from rest_framework.generics import ListAPIView
 from django.db.models import Q
 from api.final_inspection.serializers import FinalInspectionRecordSerializer
 
+
 class VerifyCofCComponents(APIView):
     permission_classes = [IsAuthenticated]
 
