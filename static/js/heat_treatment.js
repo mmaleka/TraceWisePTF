@@ -34,7 +34,7 @@ export function init() {
     formData.append("certificate", fileInput.files[0]);
 
     try {
-        const response = await fetch(`https://tracewiseptf.onrender.com/api/heat-treatment/release/${batchId}/`, {
+        const response = await fetch(`http://127.0.0.1:8000/api/heat-treatment/release/${batchId}/`, {
         method: "PATCH",
         headers: {
             "Authorization": `Bearer ${token}`
@@ -91,7 +91,7 @@ async function loadBatchTable() {
   }
 
   try {
-    const res = await fetch("https://tracewiseptf.onrender.com/api/heat-treatment/list/", {
+    const res = await fetch("http://127.0.0.1:8000/api/heat-treatment/list/", {
       headers: {
         "Authorization": `Bearer ${token}`
       }

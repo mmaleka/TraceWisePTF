@@ -9,12 +9,12 @@ export function init() {
   
     fetchCurrentUser();
     cofcId = getCofcIdFromURL();
-    console.log("📄 CofC ID:", cofcId);
+    console.log("📄 CofC ID..:", cofcId);
 
-  //   if (!cofcId) {
-  //     alert("❌ No CofC ID found in the URL.");
-  //     return;
-  //   }
+    if (!cofcId) {
+      alert("❌ No CofC ID found in the URL.");
+      return;
+    }
 
     // Optional: load existing CofC details
     loadCofcDetails(); //← create this if needed
@@ -31,11 +31,11 @@ const { jsPDF } = window.jspdf;
 
 async function loadCofcDetails() {
   const token = localStorage.getItem("authToken");
-  cofcId = 1 // getCofcIdFromURL(); // Ensure cofcId is globally set
+  cofcId = getCofcIdFromURL(); // Ensure cofcId is globally set
   if (!cofcId) return;
 
   try {
-    const response = await fetch(`https://tracewiseptf.onrender.com/api/certificate/cofc/${cofcId}/`, {
+    const response = await fetch(`http://127.0.0.1:8000/api/certificate/cofc/${cofcId}/`, {
       headers: { "Authorization": `Bearer ${token}` }
     });
 
@@ -54,17 +54,28 @@ async function loadCofcDetails() {
 }
 
 
+
+
 function getCofcIdFromURL() {
-  const params = new URLSearchParams(window.location.search);
-  return params.get("id");
+  let params = new URLSearchParams(window.location.search);
+  let id = params.get("id");
+
+  if (!id) {
+    const hash = window.location.hash;
+    params = new URLSearchParams(hash.substring(1));
+    id = params.get("id");
+  }
+
+  return id.replace(/^0+/, '') || '0';;
 }
+
 
 async function fetchCurrentUser() {
   const token = localStorage.getItem("authToken");
   if (!token) return;
 
   try {
-    const response = await fetch("https://tracewiseptf.onrender.com/api/whoami/", {
+    const response = await fetch("http://127.0.0.1:8000/api/whoami/", {
       headers: {
         "Authorization": `Bearer ${token}`,
         "Content-Type": "application/json"
@@ -91,7 +102,7 @@ const inspectionTableBody = document.querySelector("#inspectionTable tbody");
 async function loadInspectionData() {
   console.log("loadInspectionData")
   try {
-    const response = await fetch("https://tracewiseptf.onrender.com/api/final_inspection/available/", {
+    const response = await fetch("http://127.0.0.1:8000/api/final_inspection/available/", {
       headers: {
         "Authorization": `Bearer ${localStorage.getItem("authToken")}`,
         "Content-Type": "application/json"
@@ -145,11 +156,10 @@ function addComponentToPallet(component) {
 
 async function loadPalletComponents() {
   let cocId = document.getElementById("cocNumber").dataset.id;
-  cocId=1
   if (!cocId) return;
 
   try {
-    const response = await fetch(`https://tracewiseptf.onrender.com/api/certificate/components/?certificate=${cocId}`, {
+    const response = await fetch(`http://127.0.0.1:8000/api/certificate/components/?certificate=${cocId}`, {
       headers: {
         "Authorization": `Bearer ${localStorage.getItem("authToken")}`,
         "Content-Type": "application/json"
@@ -196,7 +206,6 @@ async function moveToPallet(row) {
 
   // Get CofC ID (assumes it's stored in a hidden span or data attribute)
   let cocId = document.getElementById("cocNumber").dataset.id;  // Example: <span id="cocNumber" data-id="1">0001</span>
-  cocId=1
   if (!cocId) {
     console.warn("❌ CofC ID not found. Cannot save component.");
     return;
@@ -214,7 +223,7 @@ async function moveToPallet(row) {
   try {
     const token = localStorage.getItem("authToken");
 
-    const response = await fetch("https://tracewiseptf.onrender.com/api/certificate/components/", {
+    const response = await fetch("http://127.0.0.1:8000/api/certificate/components/", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -254,7 +263,7 @@ async function removeFromPallet(row) {
     if (!confirmed) return;
 
     try {
-      const response = await fetch(`https://tracewiseptf.onrender.com/api/certificate/components/${componentId}/`, {
+      const response = await fetch(`http://127.0.0.1:8000api/certificate/components/${componentId}/`, {
         method: "DELETE",
         headers: {
           "Authorization": `Bearer ${localStorage.getItem("authToken")}`,
@@ -295,230 +304,6 @@ async function removeFromPallet(row) {
 
 
 
-// function moveToPallet(row) {
-//   // Add remove button cell
-//   if (!row.querySelector(".remove-btn")) {
-//     const removeTd = document.createElement("td");
-//     removeTd.innerHTML = `<button class="btn btn-danger btn-sm remove-btn">Remove</button>`;
-//     removeTd.querySelector("button").addEventListener("click", (e) => {
-//       e.stopPropagation();  // Prevent row click triggering
-//       removeFromPallet(row);
-//     });
-//     row.appendChild(removeTd);
-//   }
-
-//   // Move row to pallet table
-//   palletTable.appendChild(row);
-// }
-
-
-// function removeFromPallet(row) {
-//   // Remove the last cell (remove button)
-//   const lastCell = row.lastElementChild;
-//   if (lastCell && lastCell.classList.contains("remove-btn") || lastCell.querySelector(".remove-btn")) {
-//     row.removeChild(lastCell);
-//   }
-//   // Move row back to inspection table
-//   inspectionTableBody.appendChild(row);
-// }
-
-
-
-
-// Global records array
-
-
-
-
-// function verifyCofC() {
-//   const palletRows = palletTable.querySelectorAll("tr");
-//   const palletData = Array.from(palletRows).map(row => {
-//     const cells = row.querySelectorAll("td");
-//     return {
-//       shell: cells[0].innerText,
-//       cast: cells[1].innerText,
-//       heat: cells[2].innerText
-//     };
-//   });
-//   console.log("✅ CofC Verified with Pallet Data:", palletData);
-
-//   // Example incoming JSON verification status:
-//   const verificationStatus = {
-//     missing: {
-//       heat_treatment: ["SH-001-AA01-HT01"],
-//       UT: "All Complete",
-//       Banding: "All Complete",
-//       MPI: "All Complete",
-//       Balancing: ["SH-003-AA01-HT01"],
-//       final_inspection: "All Complete"
-//     }
-//   };
-
-//   // Update modal content dynamically
-//   updateVerificationSummaryTable(verificationStatus.missing);
-
-//   // Mark as verified
-//   isCofCVerified = true;
-
-//   // Enable Print button
-//   document.getElementById("printCofCBtn").disabled = false;
-
-//   // Show modal
-//   const modal = new bootstrap.Modal(document.getElementById('verificationModal'));
-//   modal.show();
-// }
-
-
-
-
-
-// function printCofC() {
-  
-//   if (!isCofCVerified) {
-//     alert("⚠️ Please verify the CofC before printing.");
-//     return;
-//   }
-  
-//   const allChecksPassed = true;
-
-//   if (allChecksPassed && Records.length > 0) {
-//     const latest = Records[0];
-
-//     // Extract pallet data rows
-//     const palletRows = palletTable.querySelectorAll("tr");
-//     const palletData = Array.from(palletRows).map(row => {
-//       const cells = row.querySelectorAll("td");
-//       return {
-//         shell: cells[0].innerText,
-//         cast: cells[1].innerText,
-//         heat: cells[2].innerText
-//       };
-//     });
-
-//     generateCofCPDF(
-//       latest.cocnumber,
-//       latest.product,
-//       latest.user,
-//       latest.date,
-//       palletData // pass pallet items here!
-//     );
-//   } else {
-//     alert("❌ Cannot generate CofC PDF. Some checks are incomplete.");
-//   }
-// }
-
-
-
-
-
-
-
-
-// function generateCofCPDF(cocNumber, product, user, date, palletItems = []) {
-//   const doc = new jsPDF();
-  
-//   // Your Base64 logo string here:
-//   const logoBase64 = "";  // <-- replace with your actual logo Base64
-
-//   // Add logo image to PDF (x=20, y=10, width=40, height=20)
-//   doc.addImage(logoBase64, 'PNG', 20, 10, 60, 30);
-
-//   doc.setFontSize(14);
-//   doc.text("CERTIFICATE OF CONFORMANCE", 130, 20, null, null, "center");
-
-//   doc.setFontSize(10);
-//   doc.text(`CofC Number: ${cocNumber}`, 20, 40);
-//   doc.text(`Product Description: ${product}`, 20, 50);
-//   doc.text(`Issued By: ${user}`, 20, 60);
-//   doc.text(`Date Issued: ${date}`, 20, 70);
-
-//   // Certification Statement
-//   doc.setFont(undefined, 'bold');
-//   doc.text("Certification Statement:", 20, 85);
-//   doc.setFont(undefined, 'normal');
-//   doc.text(
-//     "This certifies that the items listed below have been manufactured and inspected in accordance with the contractual requirements, technical specifications, and applicable quality standards.",
-//     20, 90, { maxWidth: 170 }
-//   );
-
-//   // Checklist with Batches
-//   doc.setFont(undefined, 'bold');
-//   doc.text("Checklist Summary:", 20, 110);
-//   doc.setFont(undefined, 'normal');
-
-//   const checklist = [
-//     "✔ Heat Treatment & Tensile: AAS-HAA; AAV-HAB; AAA-HAA",
-//     "✔ Duplicates: None",
-//     "✔ Ultrasonic Testing: All Complete",
-//     "✔ Banding : All Complete",
-//     "✔ MPI: All Complete",
-//     "✔ Balancing Data: All Complete",
-//     "✔ Final Inspection: All Complete"
-//   ];
-
-//   checklist.forEach((line, idx) => {
-//     doc.text(line, 25, 115 + idx * 7);
-//   });
-
-//   // Calculate starting Y after checklist
-//   let startY = 120 + checklist.length * 7 + 10;
-
-//   // Pallet Items Table
-//   if (palletItems.length > 0) {
-//     doc.setFont(undefined, 'bold');
-//     doc.text("Pallet Items:", 20, startY);
-//     startY += 7;
-
-//     // Table header
-//     doc.setFont(undefined, 'bold');
-//     doc.text("Shell #", 25, startY);
-//     doc.text("Cast Code", 70, startY);
-//     doc.text("Heat Code", 130, startY);
-//     startY += 5;
-
-//     // Horizontal line under header
-//     doc.line(20, startY, 190, startY);
-//     startY += 3;
-
-//     doc.setFont(undefined, 'normal');
-//     palletItems.forEach(item => {
-//       doc.text(item.shell, 25, startY);
-//       doc.text(item.cast, 70, startY);
-//       doc.text(item.heat, 130, startY);
-//       startY += 7;
-//     });
-//   }
-
-//   // Now place Conformance Statement BELOW the pallet items table (or checklist if no pallet items)
-//   startY += 10;  // add some space before conformance statement
-
-//   doc.setFont(undefined, 'bold');
-//   doc.text("", 20, startY);
-//   startY += 6;
-
-//   doc.setFont(undefined, 'normal');
-//   doc.text(
-//     "",
-//     20, startY, { maxWidth: 170 }
-//   );
-
-//   // Move startY down to allow for multiline text height (~20-30 units)
-//   startY += 30;
-
-//   // Signature lines
-//   doc.line(20, startY + 20, 80, startY + 20);
-//   doc.text("Quality Signature", 20, startY + 25);
-
-//   doc.line(120, startY + 20, 180, startY + 20);
-//   doc.text("Date", 120, startY + 25);
-
-//   // Save PDF
-//   doc.save(`CofC_${cocNumber}.pdf`);
-// }
-
-
-
-
 
 
 
@@ -541,71 +326,7 @@ window.filterInspectionData = filterInspectionData;
 
 
 
-// function updateVerificationSummaryTable(missingData) {
-//   const container = document.getElementById('verificationTableContainer');
-//   container.innerHTML = ''; // Clear previous content
 
-//   // Table header
-//   let tableHTML = `
-//     <table class="table table-bordered table-sm">
-//       <thead class="table-light">
-//         <tr>
-//           <th>Component</th>
-//           <th>Status</th>
-//           <th>Missing Items</th>
-//         </tr>
-//       </thead>
-//       <tbody>
-//   `;
-
-//   const displayNames = {
-//     heat_treatment: "Heat Treatment & Tensile",
-//     UT: "UT",
-//     MPI: "MPI",
-//     Balancing: "Balancing Data",
-//     final_inspection: "Final Inspection"
-//   };
-
-//   for (const key in missingData) {
-//     const value = missingData[key];
-//     const displayName = displayNames[key] || key;
-
-//     let statusText = '';
-//     let missingText = '';
-
-//     if (Array.isArray(value)) {
-//       if (value.length === 0) {
-//         statusText = `<span class="text-success">All Complete</span>`;
-//         missingText = '-';
-//       } else {
-//         statusText = `<span class="text-danger">Missing</span>`;
-//         missingText = value.join(", ");
-//       }
-//     } else if (typeof value === 'string') {
-//       if (value.toLowerCase().includes('complete')) {
-//         statusText = `<span class="text-success">${value}</span>`;
-//         missingText = '-';
-//       } else {
-//         statusText = `<span class="text-danger">${value}</span>`;
-//         missingText = '-';
-//       }
-//     } else {
-//       statusText = `<span class="text-muted">Unknown status</span>`;
-//       missingText = '-';
-//     }
-
-//     tableHTML += `
-//       <tr>
-//         <td>${displayName}</td>
-//         <td>${statusText}</td>
-//         <td style="word-break: break-word; max-width: 250px;">${missingText}</td>
-//       </tr>
-//     `;
-//   }
-
-//   tableHTML += '</tbody></table>';
-//   container.innerHTML = tableHTML;
-// }
 
 function updateVerificationSummaryTable(missingData) {
   const container = document.getElementById('verificationTableContainer');
@@ -648,8 +369,8 @@ function updateVerificationSummaryTable(missingData) {
         statusText = `<span class="text-danger">Missing</span>`;
         // Join each item. If item is a list, join its contents.
         missingText = value.map(item => {
-          return Array.isArray(item) ? item.join(" | ") : item;
-        }).join(", ");
+          return Array.isArray(item) ? item.join("-") : item;
+        }).join(" , ");
       }
     } else if (typeof value === 'string') {
       if (value.toLowerCase().includes('complete')) {
@@ -690,311 +411,18 @@ function updateVerificationSummaryTable(missingData) {
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-//////////////////
-// Old code
-/////////////////
-
-
-// let currentUser = "Unknown";
-// let cofcId = null; // Make cofcId global
-// let isCofCVerified = false;
-// const { jsPDF } = window.jspdf;
-
-// async function loadCofcDetails() {
-//   const token = localStorage.getItem("authToken");
-//   cofcId = 1 // getCofcIdFromURL(); // Ensure cofcId is globally set
-//   if (!cofcId) return;
-
-//   try {
-//     const response = await fetch(`https://tracewiseptf.onrender.com/api/certificate/cofc/${cofcId}/`, {
-//       headers: { "Authorization": `Bearer ${token}` }
-//     });
-
-//     if (response.ok) {
-//       const data = await response.json();
-//       document.getElementById("cocNumber").textContent = data.coc_number;
-//       document.getElementById("productName").textContent = data.product; // Or fetch product name from your DB/API
-//       document.getElementById("userName").textContent = data.user;
-//     } else {
-//       console.error("Failed to load CofC details.");
-//     }
-//   } catch (err) {
-//     console.error("Network error:", err);
-//   }
-// }
-
-
-// function getCofcIdFromURL() {
-//   const params = new URLSearchParams(window.location.search);
-//   return params.get("id");
-// }
-
-// async function fetchCurrentUser() {
-//   const token = localStorage.getItem("authToken");
-//   if (!token) return;
-
-//   try {
-//     const response = await fetch("https://tracewiseptf.onrender.com/api/whoami/", {
-//       headers: {
-//         "Authorization": `Bearer ${token}`,
-//         "Content-Type": "application/json"
-//       }
-//     });
-
-//     if (response.ok) {
-//       const user = await response.json();
-//       currentUser = user.username;
-//       console.log("✅ Logged in as:", currentUser);
-//     } else {
-//       console.warn("❌ Failed to fetch user info");
-//     }
-//   } catch (err) {
-//     console.error("Error fetching current user:", err);
-//   }
-// }
-
-
-// const inspectionTableBody = document.querySelector("#inspectionTable tbody");
-
-// async function loadInspectionData() {
-//   try {
-//     const response = await fetch("https://tracewiseptf.onrender.com/api/final_inspection/final-inspection/", {
-//       headers: {
-//         "Authorization": `Bearer ${localStorage.getItem("authToken")}`,
-//         "Content-Type": "application/json"
-//       }
-//     });
-
-//     if (!response.ok) {
-//       throw new Error("Failed to fetch inspection data");
-//     }
-
-//     const inspectionData = await response.json();
-
-//     inspectionData.forEach((item) => {
-//       const row = document.createElement("tr");
-//       row.innerHTML = `<td>${item.serial}</td><td>${item.cast_code}</td><td>${item.heat_code}</td>`;
-//       row.style.cursor = "pointer";
-//       row.addEventListener("click", () => moveToPallet(row));
-//       inspectionTableBody.appendChild(row);
-//     });
-
-//     console.log("✅ Inspection data loaded:", inspectionData);
-//   } catch (error) {
-//     console.error("❌ Error loading inspection data:", error);
-//   }
-// }
-
-
-
-
-
-// function addComponentToPallet(component) {
-//   const row = document.createElement("tr");
-//   row.innerHTML = `
-//     <td>${component.serial}</td>
-//     <td>${component.cast_code}</td>
-//     <td>${component.heat_code}</td>
-//   `;
-
-//   // Add remove button
-//   const removeTd = document.createElement("td");
-//   removeTd.innerHTML = `<button class="btn btn-danger btn-sm remove-btn">Remove</button>`;
-//   removeTd.querySelector("button").addEventListener("click", (e) => {
-//     e.stopPropagation();
-//     removeFromPallet(row);
-//   });
-//   row.appendChild(removeTd);
-
-//   // Store component ID for deletion
-//   row.dataset.componentId = component.id;
-
-//   palletTable.appendChild(row);
-// }
-
-
-// async function loadPalletComponents() {
-//   const cocId = document.getElementById("cocNumber").dataset.id;
-//   if (!cocId) return;
-
-//   try {
-//     const response = await fetch(`https://tracewiseptf.onrender.com/api/certificate/components/?certificate=${cocId}`, {
-//       headers: {
-//         "Authorization": `Bearer ${localStorage.getItem("authToken")}`,
-//         "Content-Type": "application/json"
-//       }
-//     });
-
-//     if (!response.ok) {
-//       throw new Error("Failed to fetch pallet components");
-//     }
-
-//     const components = await response.json();
-//     components.forEach(component => addComponentToPallet(component));
-//     console.log("✅ Pallet loaded:", components);
-//   } catch (err) {
-//     console.error("❌ Error loading pallet:", err);
-//   }
-// }
-
-
-
-
-
-
-
-
-// async function moveToPallet(row) {
-//   // Add remove button if not already present
-//   if (!row.querySelector(".remove-btn")) {
-//     const removeTd = document.createElement("td");
-//     removeTd.innerHTML = `<button class="btn btn-danger btn-sm remove-btn">Remove</button>`;
-//     removeTd.querySelector("button").addEventListener("click", (e) => {
-//       e.stopPropagation();
-//       removeFromPallet(row);
-//     });
-//     row.appendChild(removeTd);
-//   }
-
-//   // Extract values from the clicked row
-//   const cells = row.querySelectorAll("td");
-//   const shell = cells[0].innerText.trim();
-//   const cast = cells[1].innerText.trim();
-//   const heat = cells[2].innerText.trim();
-
-//   // Get CofC ID (assumes it's stored in a hidden span or data attribute)
-//   const cocId = document.getElementById("cocNumber").dataset.id;  // Example: <span id="cocNumber" data-id="1">0001</span>
-//   if (!cocId) {
-//     console.warn("❌ CofC ID not found. Cannot save component.");
-//     return;
-//   }
-
-//   // Prepare component payload
-//   const componentData = {
-//     certificate: cocId,
-//     serial: shell,
-//     cast_code: cast,
-//     heat_code: heat
-//   };
-
-//   // Send POST request
-//   try {
-//     const token = localStorage.getItem("authToken");
-
-//     const response = await fetch("https://tracewiseptf.onrender.com/api/certificate/components/", {
-//       method: "POST",
-//       headers: {
-//         "Content-Type": "application/json",
-//         "Authorization": `Bearer ${token}`
-//       },
-//       body: JSON.stringify(componentData)
-//     });
-
-//     if (response.ok) {
-//       const savedComponent = await response.json();  // <== ADD THIS
-
-//       console.log("✅ Component saved:", savedComponent);
-//       // Store the backend ID on the row
-//       row.dataset.componentId = savedComponent.id;
-      
-//       palletTable.appendChild(row);  // Move row after save
-//     } else {
-//       const error = await response.json();
-//       console.error("❌ Error saving component:", error);
-//       alert("Failed to save component. Check console for details.");
-//     }
-//   } catch (err) {
-//     console.error("⚠️ Network or server error:", err);
-//     alert("Network error while saving component.");
-//   }
-// }
-
-
-
-// async function removeFromPallet(row) {
-//   const componentId = row.dataset.componentId;
-//   console.log("componentId: ", componentId)
-
-//   // If the row has a backend ID, delete from backend
-//   if (componentId) {
-//     const confirmed = confirm("Are you sure you want to remove this component?");
-//     if (!confirmed) return;
-
-//     try {
-//       const response = await fetch(`https://tracewiseptf.onrender.com/api/certificate/components/${componentId}/`, {
-//         method: "DELETE",
-//         headers: {
-//           "Authorization": `Bearer ${localStorage.getItem("authToken")}`,
-//           "Content-Type": "application/json",
-//         },
-//       });
-
-//       if (!response.ok) {
-//         const error = await response.text();
-//         console.error("❌ Failed to delete component:", error);
-//         alert("Failed to delete component from server.");
-//         return;
-//       }
-
-//       console.log(`✅ Component ${componentId} deleted from backend`);
-//     } catch (err) {
-//       console.error("⚠️ Network error during deletion:", err);
-//       alert("Error deleting component.");
-//       return;
-//     }
-//   }
-
-//   // Remove the delete button (last cell)
-//   const lastCell = row.lastElementChild;
-//   if (lastCell && (lastCell.classList.contains("remove-btn") || lastCell.querySelector(".remove-btn"))) {
-//     row.removeChild(lastCell);
-//   }
-
-//   // Remove backend reference
-//   delete row.dataset.componentId;
-
-//   // Move the row back to inspection table
-//   inspectionTableBody.appendChild(row);
-// }
-
-
-
-
 // Global records array
-const Records = [
-  {
-    cocnumber: "0001",
-    product: "Shell Casing",
-    user: "j.molefe",
-    date: "2025-07-08 11:42 AM",
-    quantity: 100,
-    complete: "✔",
-    comments: ""
-  }
-];
+const Records = [];
 
 
 
 async function verifyCofC() {
   let cocId = document.getElementById("cocNumber").dataset.id;
-  cocId=1
   const token = localStorage.getItem("authToken");
 
   try {
-    const response = await fetch(`https://tracewiseptf.onrender.com/api/certificate/verify/?certificate=${cocId}`, {
+    // const response = await fetch(`https://tracewiseptf.onrender.com/api/certificate/verify/?certificate=${cocId}`, {
+    const response = await fetch(`http://127.0.0.1:8000/api/certificate/verify/?certificate=${cocId}`, {
       headers: {
         "Authorization": `Bearer ${token}`,
         "Content-Type": "application/json",
@@ -1010,8 +438,13 @@ async function verifyCofC() {
     const missing = data.missing;
     updateVerificationSummaryTable(missing);
 
-    isCofCVerified = true;
-    document.getElementById("printCofCBtn").disabled = false;
+    isCofCVerified = (
+      missing.heat_treatment.length === 0 &&
+      missing.UT.length === 0 &&
+      missing.MPI.length === 0 &&
+      missing.final_inspection.length === 0
+    );
+    document.getElementById("printCofCBtn").disabled = !isCofCVerified;
 
     const modal = new bootstrap.Modal(document.getElementById('verificationModal'));
     modal.show();

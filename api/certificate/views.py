@@ -15,6 +15,19 @@ from api.final_inspection.models import FinalInspectionRecord
 
 from rest_framework import generics
 
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework import status
+from rest_framework.permissions import IsAuthenticated
+from .models import CertificateOfConformance, CofCComponent
+from api.heat_treatment.models import HTComponent, HeatTreatmentBatch
+from api.ultrasonic.models import UltrasonicTest
+from api.final_inspection.models import FinalInspectionRecord
+from rest_framework.generics import ListAPIView
+from django.db.models import Q
+from api.final_inspection.serializers import FinalInspectionRecordSerializer
+
+
 
 
 class CofCComponentViewSet(viewsets.ModelViewSet):
@@ -36,17 +49,6 @@ class CofCComponentViewSet(viewsets.ModelViewSet):
 
 
 
-from rest_framework.views import APIView
-from rest_framework.response import Response
-from rest_framework import status
-from rest_framework.permissions import IsAuthenticated
-from .models import CertificateOfConformance, CofCComponent
-from api.heat_treatment.models import HTComponent, HeatTreatmentBatch
-from api.ultrasonic.models import UltrasonicTest
-from api.final_inspection.models import FinalInspectionRecord
-from rest_framework.generics import ListAPIView
-from django.db.models import Q
-from api.final_inspection.serializers import FinalInspectionRecordSerializer
 
 
 class VerifyCofCComponents(APIView):
@@ -72,9 +74,11 @@ class VerifyCofCComponents(APIView):
         missing_final_inspection = []
 
         for component in components:
+            print("component...: ", component)
             serial = component.serial
             cast_code = component.cast_code
             heat_code = component.heat_code
+            print("Serial_Number: ", serial, cast_code, heat_code)
 
             ht_component = HTComponent.objects.filter(
                 serial=serial,
@@ -92,16 +96,40 @@ class VerifyCofCComponents(APIView):
 
             batch = ht_component.batch
 
+            d = UltrasonicTest.objects.filter(
+                serial=serial,
+                cast_code=cast_code,
+                heat_code=heat_code, 
+                # operation_type="UT"
+                )
+            
+            d2 = UltrasonicTest.objects.all()
+            print("d2: ", d2)
+
             # UT check
-            if not UltrasonicTest.objects.filter(heat_treatment=batch, operation_type="UT").exists():
+            if not UltrasonicTest.objects.filter(
+                serial=serial,
+                cast_code=cast_code,
+                heat_code=heat_code, 
+                operation_type="UT").exists():
                 missing_ut.append([serial, cast_code, heat_code])
+                print("missing_ut: ", missing_ut)
 
             # MPI check
-            if not UltrasonicTest.objects.filter(heat_treatment=batch, operation_type="MPI").exists():
+            if not UltrasonicTest.objects.filter(
+                serial=serial,
+                cast_code=cast_code,
+                heat_code=heat_code
+                , operation_type="MPI").exists():
+                print([serial, cast_code, heat_code])
                 missing_mpi.append([serial, cast_code, heat_code])
+                print("missing_mpi: ", missing_mpi)
 
             # Final Inspection check
-            if not FinalInspectionRecord.objects.filter(heat_treatment=batch).exists():
+            if not FinalInspectionRecord.objects.filter(
+                serial=serial,
+                cast_code=cast_code,
+                heat_code=heat_code).exists():
                 missing_final_inspection.append([serial, cast_code, heat_code])
 
         # Helper to summarize missing items
@@ -109,12 +137,13 @@ class VerifyCofCComponents(APIView):
             formatted = []
             for item in missing_list:
                 if isinstance(item, (list, tuple)):
-                    formatted.append(" | ".join(map(str, item)))
+                    formatted.append(" - ".join(map(str, item)))
                 else:
                     formatted.append(str(item))
-            return "All Complete" if not formatted else ", ".join(formatted)
+            return "All Complete" if not formatted else " , ".join(formatted)
 
-
+        print("missing_ut: ", missing_ut)
+        print("missing_mpi: ", missing_mpi)
         # Set summary fields
         certificate.heat_treatment = summarize(missing_heat_treatment)
         certificate.ut = summarize(missing_ut)

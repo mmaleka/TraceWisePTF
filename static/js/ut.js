@@ -39,7 +39,7 @@ export function init() {
 
 
     try {
-        const response = await fetch("https://tracewiseptf.onrender.com/api/ultrasonic/records/", {
+        const response = await fetch("http://127.0.0.1:8000/api/ultrasonic/records/", {
         method: "POST",
         headers: {
             "Authorization": `Bearer ${token}`,
@@ -63,7 +63,7 @@ export function init() {
         throw new Error(data.detail || Object.values(data).join(" "));
         }
 
-
+        utRecords.unshift(data);
         renderUTTable();
         document.getElementById("utMessage").textContent = `✅ Result saved for ${serial}`;
         document.getElementById("utMessage").style.color = "#28a745";
@@ -78,15 +78,13 @@ export function init() {
 
 
 
-    utRecords.unshift({ serial, cast_code, heat_code, Product, operation_type, sentence, comment, date });
+    // utRecords.unshift({ serial, cast_code, heat_code, Product, operation_type, sentence, comment, date });
+  
+    // document.getElementById("utMessage").textContent = `✅ Result saved for ${serial}`;
+    // document.getElementById("utMessage").style.color = "#28a745";
+    // document.getElementById("utForm").reset();
 
-    
-
-    document.getElementById("utMessage").textContent = `✅ Result saved for ${serial}`;
-    document.getElementById("utMessage").style.color = "#28a745";
-    document.getElementById("utForm").reset();
-
-    setTimeout(closeFormPanel, 1000); // Auto-close after 1 sec
+    // setTimeout(closeFormPanel, 1000); // Auto-close after 1 sec
     });
 
     // Attach change listener to dropdowns
@@ -140,14 +138,35 @@ function openFormPanel() {
 
 
 
-export function deleteUTRecord(index) {
+export async function deleteUTRecord(index) {
     const confirmDelete = confirm(`Are you sure you want to delete record for ${utRecords[index].serial}?`);
-    if (confirmDelete) {
-    utRecords.splice(index, 1); // Remove from array
-    renderUTTable(); // Re-render table
+    if (!confirmDelete) return;
+
+    const token = localStorage.getItem("authToken");
+    const record = utRecords[index];
+    
+    try {
+        const response = await fetch(`http://127.0.0.1:8000/api/ultrasonic/${record.id}/`, {
+            method: "DELETE",
+            headers: {
+                "Authorization": `Bearer ${token}`
+            }
+        });
+
+        if (!response.ok) {
+            throw new Error("Failed to delete UT record");
+        }
+
+        // Remove from client-side list and re-render table
+        utRecords.splice(index, 1);
+        renderUTTable();
+
+        alert(`✅ Deleted record for ${record.serial}`);
+    } catch (err) {
+        console.error("Delete UT Error:", err);
+        alert(`❌ Error deleting record: ${err.message}`);
     }
 }
-// Expose globally so inline HTML can access it
 window.deleteUTRecord = deleteUTRecord;
 
 
@@ -159,7 +178,7 @@ async function fetchUltrasonicRecords() {
   const token = localStorage.getItem("authToken");
 
   try {
-    const response = await fetch("https://tracewiseptf.onrender.com/api/ultrasonic/records/?operation_type=UT", {
+    const response = await fetch("http://127.0.0.1:8000/api/ultrasonic/records/?operation_type=UT", {
       headers: {
         "Authorization": `Bearer ${token}`,
         "Content-Type": "application/json"
@@ -261,7 +280,7 @@ async function fetchProductFromHeatTreatment(castCode, heatCode) {
   const token = localStorage.getItem("authToken");
 
   try {
-    const response = await fetch(`https://tracewiseptf.onrender.com/api/heat-treatment/lookup/?cast_code=${encodeURIComponent(castCode)}&heat_code=${encodeURIComponent(heatCode)}`, {
+    const response = await fetch(`http://127.0.0.1:8000/api/heat-treatment/lookup/?cast_code=${encodeURIComponent(castCode)}&heat_code=${encodeURIComponent(heatCode)}`, {
       headers: {
         "Authorization": `Bearer ${token}`,
         "Content-Type": "application/json"

@@ -4,6 +4,7 @@ from api.product.models import Product
 
 class CertificateOfConformance(models.Model):
     coc_number = models.CharField(max_length=10, unique=True, editable=False)
+    order = models.CharField(max_length=10, null=True)
     product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name="certificates")
     comments = models.TextField(blank=True)
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True)

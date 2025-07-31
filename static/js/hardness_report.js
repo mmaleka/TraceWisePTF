@@ -64,7 +64,7 @@ async function fetchCurrentUser() {
   if (!token) return;
 
   try {
-    const res = await fetch("https://tracewiseptf.onrender.com/api/whoami/", {
+    const res = await fetch("http://127.0.0.1:8000/api/whoami/", {
       headers: {
         "Authorization": `Bearer ${token}`,
         "Content-Type": "application/json"
@@ -87,7 +87,7 @@ async function loadProducts() {
   if (!token) return;
 
   try {
-    const res = await fetch("https://tracewiseptf.onrender.com/api/products/", {
+    const res = await fetch("http://127.0.0.1:8000/api/products/", {
       headers: { "Authorization": `Bearer ${token}` }
     });
 
@@ -157,7 +157,7 @@ document.getElementById("utForm").addEventListener("submit", async function (e) 
   };
 
   try {
-    const res = await fetch("https://tracewiseptf.onrender.com/api/heat-treatment/ht-components/", {
+    const res = await fetch("http://127.0.0.1:8000/api/heat-treatment/ht-components/", {
       method: "POST",
       headers: {
         "Authorization": `Bearer ${token}`,
@@ -227,7 +227,7 @@ async function saveHardnessChanges() {
     });
 
     try {
-      const res = await fetch(`https://tracewiseptf.onrender.com/api/heat-treatment/ht-components/${id}/`, {
+      const res = await fetch(`http://127.0.0.1:8000/api/heat-treatment/ht-components/${id}/`, {
         method: "PATCH",
         headers: {
           "Authorization": `Bearer ${token}`,
@@ -260,7 +260,7 @@ async function deleteHardnessRecord(id) {
   if (!confirm("Are you sure you want to delete this record?")) return;
 
   try {
-    const res = await fetch(`https://tracewiseptf.onrender.com/api/heat-treatment/ht-components/${id}/`, {
+    const res = await fetch(`http://127.0.0.1:8000/api/heat-treatment/ht-components/${id}/`, {
       method: "DELETE",
       headers: {
         "Authorization": `Bearer ${token}`,
@@ -291,7 +291,7 @@ async function loadHardnessRecords() {
   if (!token) return;
 
   try {
-    const res = await fetch("https://tracewiseptf.onrender.com/api/heat-treatment/ht-components/", {
+    const res = await fetch("http://127.0.0.1:8000/api/heat-treatment/ht-components/", {
       headers: { "Authorization": `Bearer ${token}` }
     });
 

@@ -78,7 +78,7 @@ async function fetchCurrentUser() {
   if (!token) return;
 
   try {
-    const response = await fetch("https://tracewiseptf.onrender.com/api/whoami/", {
+    const response = await fetch("http://127.0.0.1:8000/api/whoami/", {
       headers: {
         "Authorization": `Bearer ${token}`,
         "Content-Type": "application/json"
@@ -106,7 +106,7 @@ async function populateProductOptions() {
   if (!token) return;
 
   try {
-    const response = await fetch("https://tracewiseptf.onrender.com/api/products/", {
+    const response = await fetch("http://127.0.0.1:8000/api/products/", {
       headers: {
         "Authorization": `Bearer ${token}`
       }
@@ -297,7 +297,7 @@ async function validateBeforeInsert(serial, cast_code, heat_code) {
   if (!token) return { valid: false, message: "You are not logged in." };
 
   try {
-    const response = await fetch("https://tracewiseptf.onrender.com/api/final_inspection/final-inspection/", {
+    const response = await fetch("http://127.0.0.1:8000/api/final_inspection/final-inspection/", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -386,7 +386,7 @@ export async function saveChanges() {
 
   try {
     for (const { id, data } of updates) {
-      await fetch(`https://tracewiseptf.onrender.com/api/final_inspection/final-inspection/${id}/`, {
+      await fetch(`http://127.0.0.1:8000/api/final_inspection/final-inspection/${id}/`, {
         method: "PATCH",
         headers: {
           "Content-Type": "application/json",
@@ -397,7 +397,7 @@ export async function saveChanges() {
     }
 
     if (creates.length > 0) {
-      const response = await fetch(`https://tracewiseptf.onrender.com/api/final_inspection/final-inspection/`, {
+      const response = await fetch(`http://127.0.0.1:8000/api/final_inspection/final-inspection/`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -513,7 +513,7 @@ async function loadFinalInspectionRecords() {
   }
 
   try {
-    const response = await fetch(`https://tracewiseptf.onrender.com/api/final_inspection/final-inspection/?product=${productId}`, {
+    const response = await fetch(`http://127.0.0.1:8000/api/final_inspection/final-inspection/?product=${productId}`, {
       headers: {
         "Authorization": `Bearer ${token}`,
         "Content-Type": "application/json"

@@ -17,7 +17,7 @@ export function init() {
 
 
 
-const backend = "https://tracewiseptf.onrender.com/api";
+const backend = "http://127.0.0.1:8000/api";
 const token = localStorage.getItem("authToken");
 
 // Section Switching

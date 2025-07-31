@@ -32,7 +32,7 @@ export function init() {
       }
 
       try {
-        const response = await fetch("https://tracewiseptf.onrender.com/api/certificate/cofc/", {
+        const response = await fetch("http://127.0.0.1:8000/api/certificate/cofc/", {
           method: "POST",
           headers: {
             "Authorization": `Bearer ${token}`,
@@ -112,7 +112,7 @@ async function fetchCurrentUser() {
   if (!token) return;
 
   try {
-    const response = await fetch("https://tracewiseptf.onrender.com/api/whoami/", {
+    const response = await fetch("http://127.0.0.1:8000/api/whoami/", {
       headers: {
         "Authorization": `Bearer ${token}`,
         "Content-Type": "application/json"
@@ -138,7 +138,7 @@ async function populateProductOptions() {
   if (!token) return;
 
   try {
-    const response = await fetch("https://tracewiseptf.onrender.com/api/products/", {
+    const response = await fetch("http://127.0.0.1:8000/api/products/", {
       headers: {
         "Authorization": `Bearer ${token}`
       }
@@ -170,7 +170,7 @@ async function fetchCofCRecords() {
   if (!token) return;
 
   try {
-    const response = await fetch("https://tracewiseptf.onrender.com/api/certificate/cofc/", {
+    const response = await fetch("http://127.0.0.1:8000/api/certificate/cofc/", {
       headers: {
         "Authorization": `Bearer ${token}`
       }
