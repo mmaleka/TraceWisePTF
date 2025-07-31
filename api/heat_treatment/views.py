@@ -22,6 +22,15 @@ from .models import HeatTreatmentBatch, HTComponent
 from .serializers import HeatTreatmentBatchSerializer
 
 
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework.permissions import IsAuthenticated
+from django.db.models import OuterRef, Subquery
+from api.stamping.models import Stamping
+from api.heat_treatment.models import HTComponent
+from api.heat_treatment.serializers import HTComponentSerializer
+
+
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def lookup_product_by_cast_and_heat(request):
@@ -63,11 +72,6 @@ def update_batch_certificate(request, batch_id):
 
     # Auto recalc hard_shell, soft_shell, quantity based on HTComponents
     components = HTComponent.objects.filter(batch=batch)
-    # Example hardness threshold for hard_shell vs soft_shell:
-    HARDNESS_THRESHOLD = 50.0
-
-    # hard_shell = components.filter(hardness_value__gte=HARDNESS_THRESHOLD).count()
-    # soft_shell = components.filter(hardness_value__lt=HARDNESS_THRESHOLD).count()
 
     # Component with the highest hardness value
     hardest_component = components.order_by("-hardness_value").first()
@@ -160,3 +164,23 @@ class ReleasedHTComponentListView(generics.ListAPIView):
             comp for comp in qs
             if (comp.serial, comp.cast_code, comp.heat_code) not in stamped_set
         ]
+
+
+
+
+
+class UnstampedComponentsView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        # Subquery of all stamped serials
+        stamped_serials = Stamping.objects.values_list('serial', flat=True)
+
+        # Get HTComponents from released batches and not stamped yet
+        unstamped_components = HTComponent.objects.filter(
+            batch__released_by__isnull=False
+        ).exclude(serial__in=stamped_serials)
+
+        serializer = HTComponentSerializer(unstamped_components, many=True)
+        return Response(serializer.data)
+

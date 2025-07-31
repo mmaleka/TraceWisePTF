@@ -7,47 +7,10 @@ body {
   justify-content: center;
   align-items: center;
   height: 100vh;
-  padding-top: 70px; /* Space for navbar */
+  padding-top: 5px; /* Space for navbar */
   color: #212529;
 }
 
-/* Navbar */
-.navbar {
-  position: fixed;
-  top: 0;
-  width: 100%;
-  background-color: #007bff;
-  color: white;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 0.75rem 1.5rem;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-  z-index: 10;
-}
-
-.navbar-brand {
-  font-size: 1.25rem;
-  font-weight: bold;
-}
-
-.navbar-links {
-  list-style: none;
-  display: flex;
-  gap: 1.5rem;
-  margin: 0;
-  padding: 0;
-}
-
-.navbar-links li a {
-  color: white;
-  text-decoration: none;
-  font-weight: 500;
-}
-
-.navbar-links li a:hover {
-  text-decoration: underline;
-}
 
 /* Login Box */
 .login-container {
@@ -89,7 +52,7 @@ input[type="password"] {
 }
 
 button {
-  padding: 0.75rem 2rem;
+  /* padding: 0.75rem 2rem; */
   background: #007bff;
   color: white;
   border: none;
@@ -106,9 +69,4 @@ button:hover {
   color: #e63946;
   margin-top: 1rem;
   text-align: center;
-}
-
-
-body {
-  padding-top: 70px; /* Adjust this value to match your navbar height */
 }

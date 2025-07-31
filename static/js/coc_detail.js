@@ -43,7 +43,7 @@ async function loadCofcDetails() {
       const data = await response.json();
       console.log("data: ", data)
       document.getElementById("cocNumber").textContent = data.coc_number;
-      document.getElementById("productName").textContent = data.product; // Or fetch product name from your DB/API
+      document.getElementById("productName").textContent = data.product_name; // Or fetch product name from your DB/API
       document.getElementById("userName").textContent = data.user;
     } else {
       console.error("Failed to load CofC details.");
@@ -269,7 +269,7 @@ async function removeFromPallet(row) {
     if (!confirmed) return;
 
     try {
-      const response = await fetch(`http://127.0.0.1:8000api/certificate/components/${componentId}/`, {
+      const response = await fetch(`http://127.0.0.1:8000/api/certificate/components/${componentId}/`, {
         method: "DELETE",
         headers: {
           "Authorization": `Bearer ${localStorage.getItem("authToken")}`,

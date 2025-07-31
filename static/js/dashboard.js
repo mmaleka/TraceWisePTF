@@ -57,17 +57,30 @@ async function updateNavbar() {
 
   if (token && username) {
     navLinks.innerHTML = `
-     
-      <li><span style="color:#ccc">👤 ${username}</span></li>
-      <li><a href="#" onclick="signOut()">Sign Out</a></li>
-      
-      <li><a href="#" onclick="navigateTo('admin')">Admin</a></li>
-      <li><a href="#">Contact</a></li>
+
+      <li class="nav-item">
+        <a class="nav-link disabled text-light" href="#">👤 ${username}</a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" href="#" onclick="signOut()">Sign Out</a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" href="#" onclick="navigateTo('admin')">Admin</a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" href="#">Contact</a>
+      </li>
+
+
     `;
   } else {
     navLinks.innerHTML = `
-      <li><a href="#" onclick="navigateTo('login')">Sign In</a></li>
-      <li><a href="#">Contact</a></li>
+      <li class="nav-item">
+        <a class="nav-link" href="#" onclick="navigateTo('login')">Sign In</a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" href="#">Contact</a>
+      </li>
     `;
   }
 }

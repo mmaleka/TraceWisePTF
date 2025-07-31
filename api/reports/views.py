@@ -63,9 +63,18 @@ class ComponentTraceabilityReport(APIView):
         def serialize_queryset(queryset):
             return [
                 {
-                    "user": obj.performed_by.username if hasattr(obj, "performed_by") and obj.performed_by else (
-                        obj.recorded_by.username if hasattr(obj, "recorded_by") and obj.recorded_by else "Unknown"
-                    ),
+                    # "user": obj.performed_by.username if hasattr(obj, "performed_by") and obj.performed_by else (
+                    #     obj.recorded_by.username if hasattr(obj, "recorded_by") and obj.recorded_by else "Unknown"
+                    # ),
+                    "user": (
+                            getattr(getattr(obj, "inspector", None), "username", None)
+                            or getattr(getattr(obj, "performed_by", None), "username", None)
+                            or getattr(getattr(obj, "recorded_by", None), "username", None)
+                            or getattr(getattr(obj, "user", None), "username", None)
+                            or "Unknown"
+                        ),
+
+
                     "date": obj.performed_at.strftime("%Y-%m-%d") if hasattr(obj, "performed_at") and obj.performed_at else (
                         obj.date.strftime("%Y-%m-%d") if hasattr(obj, "date") and obj.date else ""
                     ),
@@ -76,19 +85,27 @@ class ComponentTraceabilityReport(APIView):
             ]
 
 
-
         try:
             # ✅ Get the batch from HeatTreatmentBatch only
             ht_batch = HeatTreatmentBatch.objects.get(cast_code=cast, heat_code=heat)
         except HeatTreatmentBatch.DoesNotExist:
             return Response({"detail": "Heat treatment batch not found."}, status=status.HTTP_404_NOT_FOUND)
 
+
+        if ht_batch.certificate:
+            file_url = ht_batch.certificate.url
+        else:
+            file_url = None
+
+                
+
+
         ht_data = {
             "product": ht_batch.product.name,
             "quantity": ht_batch.quantity,
             "soft": ht_batch.soft_shell,
             "hard": ht_batch.hard_shell,
-            "certificate": getattr(ht_batch.certificate, 'url', None),
+            "certificate": file_url,
             "released_by": ht_batch.released_by.username if ht_batch.released_by else None,
             "released_at": ht_batch.released_at
         }
@@ -121,27 +138,39 @@ class ComponentTraceabilityReport(APIView):
             operation_type="MPI"
         )
 
+        certificates = CertificateOfConformance.objects.filter(
+            components__serial=shell,
+            components__cast_code=cast,
+            components__heat_code=heat
+        ).distinct()
+
+
         data = {
             "heat_treatment": ht_data,
             "ultrasonic_testing": serialize_queryset(ut_records),
             "final_stamping": serialize_queryset(
-                Stamping.objects.filter(shell=shell, cast=cast, heat=heat)
+                Stamping.objects.filter(serial=shell, cast_code=cast, heat_code=heat)
             ),
             "cnc_machining": cnc_data,
             "mpi": serialize_queryset(mpi_records),
             "banding": serialize_queryset(
-                Banding.objects.filter(shell=shell, cast=cast, heat=heat)
+                Banding.objects.filter(serial=shell, cast_code=cast, heat_code=heat)
             ),
             # "balancing": serialize_queryset(
-            #     BalancingComponent.objects.filter(shell=shell, cast=cast, heat=heat)
+            #     BalancingComponent.objects.filter(shell=shell, cast=cast, heat=heat_code)
             # ),
             "final_inspection": serialize_queryset(
-                FinalInspectionRecord.objects.filter(shell=shell, cast=cast, heat=heat)
+                FinalInspectionRecord.objects.filter(serial=shell, cast_code=cast, heat_code=heat)
             ),
-            "certificate_of_conformance": serialize_queryset(
-                CofCComponent.objects.filter(shell=shell, cast=cast, heat=heat)
-            ),
+            "certificate_of_conformance": serialize_queryset(certificates),
         }
+        
+        dd = serialize_queryset(
+                CofCComponent.objects.filter(serial=shell, cast_code=cast, heat_code=heat))
+        print("dd: ", dd)
+
+        print("data: ", data)
+
 
         return Response(data)
 

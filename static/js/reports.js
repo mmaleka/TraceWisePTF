@@ -75,6 +75,9 @@ export function searchComponent() {
   })
   .then(data => {
 
+    console.log("data.certificate_of_conformance ", data.certificate_of_conformance);
+    
+
 
   //     // Heat Treatment
       document.getElementById("htProduct").textContent = data.heat_treatment.product || "-";

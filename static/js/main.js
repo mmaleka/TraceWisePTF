@@ -70,15 +70,3 @@ document.querySelectorAll(".nav-card").forEach(card => {
 
 
 
-
-// window.addEventListener('DOMContentLoaded', () => {
-//   const token = sessionStorage.getItem('authToken');
-//   if (token) {
-//     loadPage('/static/html/dashboard.html');
-//   } else {
-//     loadPage('/static/html/login.html');
-//   }
-// });
-
-
-

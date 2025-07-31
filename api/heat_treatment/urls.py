@@ -1,6 +1,6 @@
 from rest_framework.routers import DefaultRouter
 from django.urls import path
-from .views import HTComponentViewSet, lookup_product_by_cast_and_heat, update_batch_certificate, release_batch, list_batches, ReleasedHTComponentListView
+from .views import HTComponentViewSet, lookup_product_by_cast_and_heat, update_batch_certificate, UnstampedComponentsView, release_batch, list_batches, ReleasedHTComponentListView
 
 # Register the HTComponent ViewSet
 router = DefaultRouter()
@@ -13,8 +13,8 @@ urlpatterns = router.urls + [
     path('eligible-components/', ReleasedHTComponentListView.as_view(), name='eligible-ht-components'),
     path('release/<int:batch_id>/', update_batch_certificate, name='update_batch_certificate'),
     path('lookup/', lookup_product_by_cast_and_heat, name='heat-treatment-lookup'),
+    path('components/unstamped/', UnstampedComponentsView.as_view(), name='unstamped-components'),
 ]
-
 
 
 
