@@ -96,15 +96,6 @@ class VerifyCofCComponents(APIView):
 
             batch = ht_component.batch
 
-            d = UltrasonicTest.objects.filter(
-                serial=serial,
-                cast_code=cast_code,
-                heat_code=heat_code, 
-                # operation_type="UT"
-                )
-            
-            d2 = UltrasonicTest.objects.all()
-            print("d2: ", d2)
 
             # UT check
             if not UltrasonicTest.objects.filter(

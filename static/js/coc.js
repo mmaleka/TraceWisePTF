@@ -53,7 +53,7 @@ export function init() {
           Records.unshift({
             cocnumber: newCofC.coc_number,
             order: order,
-            product: product,
+            product: product_name,
             comments: comments,
             user: currentUser,
             date: new Date(newCofC.date).toLocaleString(),
@@ -185,7 +185,7 @@ async function fetchCofCRecords() {
         Records.push({
           cocnumber: record.coc_number,
           order: record.order,
-          product: typeof record.product === "object" ? record.product.name : record.product, // fallback
+          product: typeof record.product_name === "object" ? record.product.name : record.product_name, // fallback
           comments: record.comments || "-",
           user: record.user || "Unknown",
           date: new Date(record.date).toLocaleString(),

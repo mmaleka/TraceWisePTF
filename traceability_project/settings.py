@@ -172,8 +172,6 @@ STATICFILES_DIRS = [BASE_DIR / "static"]
 # Add this line for production (or use Pathlib if you're already using it)
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
-MEDIA_URL = '/media/'
-MEDIA_ROOT = BASE_DIR / 'media'
 
 
 # Default primary key field type

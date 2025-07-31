@@ -26,7 +26,7 @@ async function fetchCurrentUser() {
   if (!token) return;
 
   try {
-    const res = await fetch("https://tracewiseptf.onrender.com/api/whoami/", {
+    const res = await fetch("http://127.0.0.1:8000/api/whoami/", {
       headers: {
         "Authorization": `Bearer ${token}`,
         "Content-Type": "application/json"
@@ -63,7 +63,7 @@ export function searchComponent() {
   document.getElementById("resultContainer").classList.remove("d-none");
   
   
-  fetch(`https://tracewiseptf.onrender.com/api/reports/traceability/?shell=${shell}&cast=${cast}&heat=${heat}`, {
+  fetch(`http://127.0.0.1:8000/api/reports/traceability/?shell=${shell}&cast=${cast}&heat=${heat}`, {
   headers: {
     "Authorization": `Bearer ${token}`,
     "Content-Type": "application/json"
@@ -75,12 +75,7 @@ export function searchComponent() {
   })
   .then(data => {
 
-  // fetch(`https://tracewiseptf.onrender.com/api/component-traceability/?shell=${shell}&cast=${cast}&heat=${heat}`)
-  //   .then((response) => {
-  //     if (!response.ok) throw new Error("Failed to fetch data.");
-  //     return response.json();
-  //   })
-  //   .then((data) => {
+
   //     // Heat Treatment
       document.getElementById("htProduct").textContent = data.heat_treatment.product || "-";
       document.getElementById("htQuantity").textContent = data.heat_treatment.quantity || "0";
@@ -339,7 +334,7 @@ function fetchWipSummary() {
     return;
   }
 
-  fetch(`https://tracewiseptf.onrender.com/api/reports/wip-summary/?product=${productId}`, {
+  fetch(`http://127.0.0.1:8000/api/reports/wip-summary/?product=${productId}`, {
     method: "GET",
     headers: {
       "Content-Type": "application/json",
